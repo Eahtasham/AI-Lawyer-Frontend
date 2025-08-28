@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
   --background: oklch(0.9816 0.0017 247.8390);
@@ -20,13 +23,11 @@
   --border: oklch(0.9109 0.0070 247.9014);
   --input: oklch(1.0000 0 0);
   --ring: oklch(0.5645 0.1633 253.2706);
-
   --chart-1: oklch(0.4217 0.1569 259.9133);
   --chart-2: oklch(0.5645 0.1633 253.2706);
   --chart-3: oklch(0.7002 0.1488 246.6596);
   --chart-4: oklch(0.8163 0.0896 243.6190);
   --chart-5: oklch(0.5575 0.0165 244.8933);
-
   --sidebar: oklch(1.0000 0 0);
   --sidebar-foreground: oklch(0.4276 0.0147 248.1715);
   --sidebar-primary: oklch(0.4217 0.1569 259.9133);
@@ -35,26 +36,20 @@
   --sidebar-accent-foreground: oklch(0.4217 0.1569 259.9133);
   --sidebar-border: oklch(0.9109 0.0070 247.9014);
   --sidebar-ring: oklch(0.5645 0.1633 253.2706);
-
   --font-sans: Roboto, ui-sans-serif, sans-serif, system-ui;
   --font-serif: Noto Serif, ui-serif, serif;
   --font-mono: Anonymous Pro, ui-monospace, monospace;
-
   --radius: 0.375rem;
-
   --shadow-2xs: 0px 4px 8px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0px 4px 8px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0px 4px 8px 0px hsl(0 0% 0% / 0.10),
-                0px 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow:    0px 4px 8px 0px hsl(0 0% 0% / 0.10),
-                0px 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0px 4px 8px 0px hsl(0 0% 0% / 0.10),
-                0px 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0px 4px 8px 0px hsl(0 0% 0% / 0.10),
-                0px 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0px 4px 8px 0px hsl(0 0% 0% / 0.10),
-                0px 8px 10px -1px hsl(0 0% 0% / 0.10);
-  --shadow-2xl:0px 4px 8px 0px hsl(0 0% 0% / 0.25);
+  --shadow-sm: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0px 4px 8px 0px hsl(0 0% 0% / 0.25);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
 }
 
 .dark {
@@ -77,13 +72,11 @@
   --border: oklch(0.3451 0.0133 248.2124);
   --input: oklch(0.2931 0 0);
   --ring: oklch(0.7002 0.1488 246.6596);
-
   --chart-1: oklch(0.7002 0.1488 246.6596);
   --chart-2: oklch(0.7482 0.1235 244.7492);
   --chart-3: oklch(0.8163 0.0896 243.6190);
   --chart-4: oklch(0.8848 0.0546 243.3882);
   --chart-5: oklch(0.6993 0 0);
-
   --sidebar: oklch(0.2350 0 0);
   --sidebar-foreground: oklch(0.8671 0.0106 247.9485);
   --sidebar-primary: oklch(0.7002 0.1488 246.6596);
@@ -92,6 +85,18 @@
   --sidebar-accent-foreground: oklch(0.9417 0.0052 247.8790);
   --sidebar-border: oklch(0.3451 0.0133 248.2124);
   --sidebar-ring: oklch(0.7002 0.1488 246.6596);
+  --font-sans: Roboto, ui-sans-serif, sans-serif, system-ui;
+  --font-serif: Noto Serif, ui-serif, serif;
+  --font-mono: Anonymous Pro, ui-monospace, monospace;
+  --radius: 0.375rem;
+  --shadow-2xs: 0px 4px 8px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0px 4px 8px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0px 4px 8px 0px hsl(0 0% 0% / 0.10), 0px 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0px 4px 8px 0px hsl(0 0% 0% / 0.25);
 }
 
 @theme inline {
@@ -114,13 +119,11 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -148,9 +151,15 @@
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
 }
-
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
