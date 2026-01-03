@@ -50,11 +50,21 @@ export function RetrievedChunks({ chunks }: RetrievedChunksProps) {
                                                     {chunk.metadata.law && (
                                                         <span className="font-medium text-foreground/90">
                                                             {chunk.metadata.law}
+                                                            {chunk.metadata.year && (
+                                                                <span className="text-muted-foreground ml-1">
+                                                                    ({chunk.metadata.year})
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                    {chunk.metadata.enactment_date && (
+                                                        <span className="text-[10px]">
+                                                            Enacted: {chunk.metadata.enactment_date}
                                                         </span>
                                                     )}
                                                     {(chunk.metadata.chapter_number || chunk.metadata.chapter_title) && (
                                                         <span>
-                                                            {chunk.metadata.chapter_number && `Chapter ${chunk.metadata.chapter_number}: `}
+                                                            {chunk.metadata.chapter_number && `${chunk.metadata.chapter_number}: `}
                                                             {chunk.metadata.chapter_title}
                                                         </span>
                                                     )}
