@@ -422,7 +422,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                     </Sheet>
                     <div className="font-semibold text-lg flex items-center gap-2">
                         <Home className="h-5 w-5" />
-                        AI Lawyer
+                        SamVidhaan AI
                     </div>
                     {/* Placeholder for balance */}
                      <div className="w-8" />
@@ -472,10 +472,10 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                     {messages.length === 0 ? (
                         <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
                             <h2 className="text-4xl font-semibold tracking-tight mb-4">
-                                AI Lawyer
+                                SamVidhaanAI
                             </h2>
                             <p className="text-xl text-muted-foreground/80 max-w-md">
-                                Your personal legal assistant for Indian laws and procedures.
+                                Your Personal Supercharged Legal Assistant
                             </p>
                         </div>
                     ) : (

@@ -109,7 +109,7 @@ export function Sidebar({
                                 <div className="h-8 w-8 rounded-lg bg-white text-black flex items-center justify-center">
                                     <Home className="h-5 w-5" />
                                 </div>
-                                <span>AI Lawyer</span>
+                                <span>SamVidhaan AI</span>
                             </Link>
                             <Button
                                 variant="ghost" 
