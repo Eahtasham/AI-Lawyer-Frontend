@@ -116,32 +116,75 @@ export default function ChatPage() {
             timestamp: Date.now(),
         };
 
-        setMessages((prev) => [...prev, userMessage]);
+        const aiMessageId = uuidv4();
+        const initialAiMessage: Message = {
+            id: aiMessageId,
+            role: "ai",
+            content: "",
+            timestamp: Date.now(),
+            logs: [],
+            council_opinions: [],
+            isStreaming: true,
+        };
+
+        setMessages((prev) => [...prev, userMessage, initialAiMessage]);
         setIsLoading(true);
 
+        // Function to update the specific AI message in state
+        const updateAiMessage = (updates: Partial<Message>) => {
+            setMessages((prev) => 
+                prev.map((msg) => 
+                    msg.id === aiMessageId ? { ...msg, ...updates } : msg
+                )
+            );
+        };
+
         try {
-            const response = await fetchChatResponse({ query, top_k: 5 });
+            await import("@/lib/api").then(mod => mod.streamChatResponseWithFetch(
+                query,
+                (type, payload) => {
+                    setMessages((prev) => {
+                         const current = prev.find(m => m.id === aiMessageId);
+                         if (!current) return prev;
+                         
+                         const newMsg = { ...current };
 
-            const aiMessage: Message = {
-                id: uuidv4(),
-                role: "ai",
-                content: response.answer,
-                chunks: response.chunks,
-                timestamp: Date.now(),
-            };
+                         if (type === 'log') {
+                             newMsg.logs = [...(newMsg.logs || []), payload];
+                         } else if (type === 'opinion') {
+                             // Check if opinion already exists to avoid dupes (though backend shouldn't send dupes)
+                             const exists = newMsg.council_opinions?.some(op => op.role === payload.role);
+                             if (!exists) {
+                                  newMsg.council_opinions = [...(newMsg.council_opinions || []), payload];
+                             }
+                         } else if (type === 'chunks') {
+                             newMsg.chunks = payload;
+                         } else if (type === 'data') {
+                             if (payload.answer) {
+                                 newMsg.content = payload.answer;
+                                 newMsg.isStreaming = false;
+                             }
+                             if (payload.error) {
+                                 newMsg.content = `Error: ${payload.error}`;
+                                 newMsg.isStreaming = false;
+                             }
+                         }
+                         
+                         return prev.map(m => m.id === aiMessageId ? newMsg : m);
+                    });
+                }
+            ));
 
-            setMessages((prev) => [...prev, aiMessage]);
         } catch (error) {
             console.error("Failed to fetch response:", error);
-            const errorMessage: Message = {
-                id: uuidv4(),
-                role: "ai",
-                content: "Sorry, I encountered an error while processing your request. Please try again.",
-                timestamp: Date.now(),
-            };
-            setMessages((prev) => [...prev, errorMessage]);
+            updateAiMessage({ 
+                content: "Sorry, I encountered an error while processing your request.",
+                isStreaming: false
+            });
         } finally {
             setIsLoading(false);
+            // Ensure streaming flag is off
+            setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, isStreaming: false } : m));
         }
     };
 

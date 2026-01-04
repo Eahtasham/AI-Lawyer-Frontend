@@ -1,6 +1,9 @@
+"use client";
+
 import { Message } from "@/types";
 import { cn } from "@/lib/utils";
 import { RetrievedChunks } from "./retrieved-chunks";
+import { CouncilDeliberations } from "@/components/custom/council-deliberations";
 import { motion } from "framer-motion";
 import { Copy, RotateCcw, User, Bot, Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -58,6 +61,15 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
             </div>
 
             <div className="relative flex-1 overflow-hidden">
+                {/* Council Deliberations (Shown above the answer) */}
+                {isAi && (
+                    <CouncilDeliberations 
+                        opinions={message.council_opinions || []} 
+                        logs={message.logs} 
+                        isStreaming={message.isStreaming} 
+                    />
+                )}
+
                 {isEditing ? (
                     <div className="rounded-md border bg-muted p-3">
                          <Textarea 

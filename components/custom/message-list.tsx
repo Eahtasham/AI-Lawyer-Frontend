@@ -1,3 +1,5 @@
+"use client";
+
 import { Message } from "@/types";
 import { MessageBubble } from "./message-bubble";
 import { ScrollArea } from "@/components/ui/scroll-area";

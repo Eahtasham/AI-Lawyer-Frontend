@@ -28,11 +28,18 @@ export interface Chunk {
     };
 }
 
+export interface CouncilOpinion {
+    role: string;
+    model: string;
+    opinion: string;
+}
+
 export interface ChatResponse {
     query: string;
     answer: string;
     chunks: Chunk[];
     llm_model?: string;
+    council_opinions?: CouncilOpinion[];
 }
 
 export interface Message {
@@ -40,7 +47,10 @@ export interface Message {
     role: "user" | "ai";
     content: string;
     chunks?: Chunk[];
+    council_opinions?: CouncilOpinion[];
     timestamp: number;
+    logs?: string[];
+    isStreaming?: boolean;
 }
 
 export interface ChatSession {
