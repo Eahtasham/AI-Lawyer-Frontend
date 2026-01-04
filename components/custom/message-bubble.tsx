@@ -25,9 +25,13 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
 
+    const [isCopied, setIsCopied] = useState(false);
+
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(message.content);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy text: ', err);
         }
@@ -138,9 +142,9 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                                 size="sm"
                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                 onClick={handleCopy}
-                                title="Copy"
+                                title={isCopied ? "Copied" : "Copy"}
                             >
-                                <Copy className="h-4 w-4" />
+                                {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                             </Button>
 
                             {isAi && onRegenerate && (

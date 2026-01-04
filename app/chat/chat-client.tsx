@@ -9,10 +9,22 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Home } from "lucide-react";
+import { Menu, Home, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useChatStore } from "@/lib/store/chat-store";
 import { createClient } from "@/lib/supabase/client";
+import { User } from "@supabase/supabase-js";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Add Props interface
 interface ChatClientProps {
@@ -54,6 +66,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const [mounted, setMounted] = useState(false);
     // Initialize token with prop
     const [token, setToken] = useState<string | null>(accessToken);
+    const [user, setUser] = useState<User | null>(null);
 
     // Get current session and messages
     const currentSession = sessions.find(s => s.id === currentSessionId);
@@ -69,11 +82,19 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
 
         // Listen for Auth Changes (e.g. token refresh)
         const supabase = createClient();
+        
+        // Get initial user
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            setUser(user);
+        });
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
              if (session) {
                  setToken(session.access_token);
+                 setUser(session.user);
              } else if (event === 'SIGNED_OUT') {
                  setToken(null);
+                 setUser(null);
                  router.push("/login");
              }
         });
@@ -99,6 +120,13 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const router = useRouter();
 
     const handleNewChat = () => {
+        // Check for existing empty session to prevent spamming
+        const emptySession = sessions.find(s => s.messages.length === 0);
+        if (emptySession) {
+            actions.setCurrentSessionId(emptySession.id);
+            return;
+        }
+
         const newSessionId = uuidv4();
         const newSession = {
             id: newSessionId,
@@ -122,9 +150,13 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         if (token) {
             try {
                 await import("@/lib/api").then(mod => mod.deleteConversation(sessionId, token));
-            } catch (error) {
-                console.error("Failed to delete conversation from backend:", error);
-                // Ideally revert optimistic update here if critical
+            } catch (error: any) {
+                // Ignore "Not Found" errors as it likely means the conversation wasn't persisted yet (e.g. New Chat)
+                if (error.message && (error.message.includes("Not Found") || error.message.includes("404"))) {
+                    console.warn(`Conversation ${sessionId} not found on backend, treated as local delete.`);
+                } else {
+                    console.error("Failed to delete conversation from backend:", error);
+                }
             }
         }
         
@@ -360,6 +392,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 onSelectSession={handleSelectSession}
                 onDeleteSession={handleDeleteSession}
                 onLogout={handleLogout}
+                user={user}
             />
 
             <main className="flex flex-1 flex-col h-full relative min-w-0">
@@ -383,6 +416,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                                 onSelectSession={handleSelectSession}
                                 onDeleteSession={handleDeleteSession}
                                 onLogout={handleLogout}
+                                user={user}
                             />
                         </SheetContent>
                     </Sheet>
@@ -390,8 +424,49 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         <Home className="h-5 w-5" />
                         AI Lawyer
                     </div>
-                    <div className="w-8" />
+                    {/* Placeholder for balance */}
+                     <div className="w-8" />
                 </div>
+                
+                {/* Desktop Header */}
+                 <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-white/10 bg-background/95 backdrop-blur z-20 h-16">
+                     <div className="flex flex-col">
+                         <h2 className="text-lg font-semibold tracking-tight truncate max-w-xl">
+                             {currentSession?.title || "New Chat"}
+                         </h2>
+                         <p className="text-xs text-muted-foreground">
+                             {messages.length} messages
+                         </p>
+                     </div>
+                     <div className="flex items-center gap-2">
+                         {currentSessionId && messages.length > 0 && (
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10" title="Delete Chat">
+                                        <Trash2 className="h-5 w-5" />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="bg-zinc-950 border-white/10 text-white">
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete Conversation?</AlertDialogTitle>
+                                        <AlertDialogDescription className="text-white/60">
+                                            This action cannot be undone. This will permanently delete your conversation history.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel className="bg-transparent border-white/10 hover:bg-white/10 hover:text-white text-white">Cancel</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                            onClick={() => handleDeleteSession(currentSessionId)}
+                                            className="bg-red-500 text-white hover:bg-red-600 border-none"
+                                        >
+                                            Delete
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                         )}
+                     </div>
+                 </div>
 
                 <div className="flex-1 overflow-hidden relative flex flex-col">
                     {messages.length === 0 ? (
