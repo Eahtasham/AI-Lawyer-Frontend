@@ -7,6 +7,9 @@ import { fetchChatResponse } from "@/lib/api";
 import { ChatSession, Message } from "@/types";
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu, Home } from "lucide-react";
 
 export default function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -280,6 +283,7 @@ export default function ChatPage() {
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+            {/* Desktop Sidebar */}
             <Sidebar 
                 className="hidden md:flex" 
                 sessions={sessions}
@@ -288,7 +292,38 @@ export default function ChatPage() {
                 onSelectSession={handleSelectSession}
                 onClearHistory={handleClearHistory}
             />
+
             <main className="flex flex-1 flex-col h-full relative min-w-0">
+                {/* Mobile Header */}
+                <div className="flex items-center justify-between p-4 border-b md:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="-ml-2">
+                                <Menu className="h-6 w-6" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 w-[280px] border-r border-white/10 bg-black text-white">
+                             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                             <Sidebar 
+                                className="border-r-0 w-full" 
+                                sessions={sessions}
+                                currentSessionId={currentSessionId}
+                                onNewChat={() => {
+                                    handleNewChat();
+                                    // wrapper to close sheet if needed, but for now specific "close" logic might require controlled state if UX demands
+                                }} 
+                                onSelectSession={handleSelectSession}
+                                onClearHistory={handleClearHistory}
+                            />
+                        </SheetContent>
+                    </Sheet>
+                    <div className="font-semibold text-lg flex items-center gap-2">
+                         <Home className="h-5 w-5" />
+                         AI Lawyer
+                    </div>
+                    <div className="w-8" /> {/* Spacer for centering */}
+                </div>
+
                 <div className="flex-1 overflow-hidden relative flex flex-col"> 
                     {messages.length === 0 ? (
                          <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
