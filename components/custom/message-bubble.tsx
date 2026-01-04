@@ -60,27 +60,27 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
             <div className="relative flex-1 overflow-hidden">
                 {isEditing ? (
                     <div className="rounded-md border bg-muted p-3">
-                         <Textarea 
-                            value={editContent} 
+                        <Textarea
+                            value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
                             className="min-h-[100px] w-full resize-none border-0 bg-transparent p-0 focus-visible:ring-0"
                             autoFocus
-                         />
-                         <div className="mt-2 flex justify-end gap-2">
+                        />
+                        <div className="mt-2 flex justify-end gap-2">
                             <Button size="sm" variant="secondary" onClick={handleCancelEdit}>
                                 <X className="mr-2 h-3 w-3" /> Cancel
                             </Button>
                             <Button size="sm" onClick={handleSaveEdit}>
                                 <Check className="mr-2 h-3 w-3" /> Save & Submit
                             </Button>
-                         </div>
+                        </div>
                     </div>
                 ) : (
                     <div className="prose prose-neutral dark:prose-invert max-w-none break-words">
-                         <ReactMarkdown
+                        <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
-                                code({ node, inline, className, children, ...props }: any) {
+                                code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode }) {
                                     const match = /language-(\w+)/.exec(className || '');
                                     return !inline && match ? (
                                         <div className="rounded-md overflow-hidden my-4 border bg-zinc-950">
@@ -115,26 +115,26 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
 
                 {!isEditing && (
                     <div className={cn(
-                        "mt-2 flex items-center gap-2 transition-opacity duration-200", 
+                        "mt-2 flex items-center gap-2 transition-opacity duration-200",
                         isAi ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                     )}>
                         {isAi && message.chunks && <RetrievedChunks chunks={message.chunks} />}
-                        
+
                         <div className="flex items-center gap-2">
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
+                            <Button
+                                variant="ghost"
+                                size="sm"
                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                 onClick={handleCopy}
                                 title="Copy"
                             >
                                 <Copy className="h-4 w-4" />
                             </Button>
-                            
+
                             {isAi && onRegenerate && (
-                                <Button 
-                                    variant="ghost" 
-                                    size="sm" 
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
                                     className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                     onClick={onRegenerate}
                                     title="Regenerate"
