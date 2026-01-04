@@ -92,7 +92,8 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
-                                code({ inline, className, children, ...props }: React.ComponentProps<'code'> & { inline?: boolean }) {
+
+                                code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode }) {
                                     const match = /language-(\w+)/.exec(className || '');
                                     return !inline && match ? (
                                         <div className="rounded-md overflow-hidden my-4 border bg-zinc-950">

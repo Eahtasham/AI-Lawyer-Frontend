@@ -24,7 +24,7 @@ export interface Chunk {
         chunk_index?: string | number;
         token_count?: string | number;
         // Catch-all for any additional fields
-        [key: string]: string | number | undefined;
+        [key: string]: string | number | boolean | undefined;
     };
 }
 
