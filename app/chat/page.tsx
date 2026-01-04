@@ -26,13 +26,13 @@ export default function ChatPage() {
             try {
                 const parsedSessions: ChatSession[] = JSON.parse(savedSessions);
                 setSessions(parsedSessions);
-                
+
                 // If there are sessions, load the most recent one, otherwise create new
                 if (parsedSessions.length > 0) {
-                     // Sort by updatedAt desc
-                     const recent = parsedSessions.sort((a, b) => b.updatedAt - a.updatedAt)[0];
-                     setCurrentSessionId(recent.id);
-                     setMessages(recent.messages);
+                    // Sort by updatedAt desc
+                    const recent = parsedSessions.sort((a, b) => b.updatedAt - a.updatedAt)[0];
+                    setCurrentSessionId(recent.id);
+                    setMessages(recent.messages);
                 } else {
                     handleNewChat();
                 }
@@ -63,10 +63,10 @@ export default function ChatPage() {
                     // Update title based on first message if needed and not set
                     let title = session.title;
                     if ((title === "New Chat" || !title) && messages.length > 0) {
-                         const firstUserMsg = messages.find(m => m.role === "user");
-                         if (firstUserMsg) {
-                             title = firstUserMsg.content.slice(0, 30) + (firstUserMsg.content.length > 30 ? "..." : "");
-                         }
+                        const firstUserMsg = messages.find(m => m.role === "user");
+                        if (firstUserMsg) {
+                            title = firstUserMsg.content.slice(0, 30) + (firstUserMsg.content.length > 30 ? "..." : "");
+                        }
                     }
 
                     return {
@@ -90,7 +90,7 @@ export default function ChatPage() {
             messages: [],
             updatedAt: Date.now()
         };
-        
+
         setSessions((prev) => [...prev, newSession]);
         setCurrentSessionId(newSessionId);
         setMessages([]);
@@ -135,8 +135,8 @@ export default function ChatPage() {
 
         // Function to update the specific AI message in state
         const updateAiMessage = (updates: Partial<Message>) => {
-            setMessages((prev) => 
-                prev.map((msg) => 
+            setMessages((prev) =>
+                prev.map((msg) =>
                     msg.id === aiMessageId ? { ...msg, ...updates } : msg
                 )
             );
@@ -147,40 +147,42 @@ export default function ChatPage() {
                 query,
                 (type, payload) => {
                     setMessages((prev) => {
-                         const current = prev.find(m => m.id === aiMessageId);
-                         if (!current) return prev;
-                         
-                         const newMsg = { ...current };
+                        const current = prev.find(m => m.id === aiMessageId);
+                        if (!current) return prev;
 
-                         if (type === 'log') {
-                             newMsg.logs = [...(newMsg.logs || []), payload];
-                         } else if (type === 'opinion') {
-                             // Check if opinion already exists to avoid dupes (though backend shouldn't send dupes)
-                             const exists = newMsg.council_opinions?.some(op => op.role === payload.role);
-                             if (!exists) {
-                                  newMsg.council_opinions = [...(newMsg.council_opinions || []), payload];
-                             }
-                         } else if (type === 'chunks') {
-                             newMsg.chunks = payload;
-                         } else if (type === 'data') {
-                             if (payload.answer) {
-                                 newMsg.content = payload.answer;
-                                 newMsg.isStreaming = false;
-                             }
-                             if (payload.error) {
-                                 newMsg.content = `Error: ${payload.error}`;
-                                 newMsg.isStreaming = false;
-                             }
-                         }
-                         
-                         return prev.map(m => m.id === aiMessageId ? newMsg : m);
+                        const newMsg = { ...current };
+
+                        if (type === 'log') {
+                            newMsg.logs = [...(newMsg.logs || []), payload as string];
+                        } else if (type === 'opinion') {
+                            // Check if opinion already exists to avoid dupes (though backend shouldn't send dupes)
+                            const opinionPayload = payload as { role: string; model: string; opinion: string };
+                            const exists = newMsg.council_opinions?.some(op => op.role === opinionPayload.role);
+                            if (!exists) {
+                                newMsg.council_opinions = [...(newMsg.council_opinions || []), opinionPayload];
+                            }
+                        } else if (type === 'chunks') {
+                            newMsg.chunks = payload as Message['chunks'];
+                        } else if (type === 'data') {
+                            const dataPayload = payload as { answer?: string; error?: string };
+                            if (dataPayload.answer) {
+                                newMsg.content = dataPayload.answer;
+                                newMsg.isStreaming = false;
+                            }
+                            if (dataPayload.error) {
+                                newMsg.content = `Error: ${dataPayload.error}`;
+                                newMsg.isStreaming = false;
+                            }
+                        }
+
+                        return prev.map(m => m.id === aiMessageId ? newMsg : m);
                     });
                 }
             ));
 
         } catch (error) {
             console.error("Failed to fetch response:", error);
-            updateAiMessage({ 
+            updateAiMessage({
                 content: "Sorry, I encountered an error while processing your request.",
                 isStreaming: false
             });
@@ -243,7 +245,7 @@ export default function ChatPage() {
             newHistory = messages.slice(0, -1);
             queryMessage = newHistory[newHistory.length - 1];
         } else {
-             return;
+            return;
         }
 
         if (queryMessage.role !== "user") return;
@@ -284,11 +286,11 @@ export default function ChatPage() {
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
             {/* Desktop Sidebar */}
-            <Sidebar 
-                className="hidden md:flex" 
+            <Sidebar
+                className="hidden md:flex"
                 sessions={sessions}
                 currentSessionId={currentSessionId}
-                onNewChat={handleNewChat} 
+                onNewChat={handleNewChat}
                 onSelectSession={handleSelectSession}
                 onClearHistory={handleClearHistory}
             />
@@ -303,30 +305,30 @@ export default function ChatPage() {
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 w-[280px] border-r border-white/10 bg-black text-white">
-                             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                             <Sidebar 
-                                className="border-r-0 w-full" 
+                            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                            <Sidebar
+                                className="border-r-0 w-full"
                                 sessions={sessions}
                                 currentSessionId={currentSessionId}
                                 onNewChat={() => {
                                     handleNewChat();
                                     // wrapper to close sheet if needed, but for now specific "close" logic might require controlled state if UX demands
-                                }} 
+                                }}
                                 onSelectSession={handleSelectSession}
                                 onClearHistory={handleClearHistory}
                             />
                         </SheetContent>
                     </Sheet>
                     <div className="font-semibold text-lg flex items-center gap-2">
-                         <Home className="h-5 w-5" />
-                         AI Lawyer
+                        <Home className="h-5 w-5" />
+                        AI Lawyer
                     </div>
                     <div className="w-8" /> {/* Spacer for centering */}
                 </div>
 
-                <div className="flex-1 overflow-hidden relative flex flex-col"> 
+                <div className="flex-1 overflow-hidden relative flex flex-col">
                     {messages.length === 0 ? (
-                         <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
+                        <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
                             <h2 className="text-4xl font-semibold tracking-tight mb-4">
                                 AI Lawyer
                             </h2>
@@ -335,16 +337,16 @@ export default function ChatPage() {
                             </p>
                         </div>
                     ) : (
-                        <MessageList 
-                            messages={messages} 
-                            isLoading={isLoading} 
+                        <MessageList
+                            messages={messages}
+                            isLoading={isLoading}
                             onEdit={handleEdit}
                             onRegenerate={handleRegenerate}
                         />
                     )}
                 </div>
                 <div className="w-full max-w-3xl mx-auto z-10 px-4 mb-2">
-                     <ChatInput onSend={handleSend} isLoading={isLoading} />
+                    <ChatInput onSend={handleSend} isLoading={isLoading} />
                 </div>
             </main>
         </div>
