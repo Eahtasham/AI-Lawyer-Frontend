@@ -3,16 +3,23 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { query, top_k } = body;
+    // Forward all body params including conversation_id
+    const { query, top_k, conversation_id } = body;
 
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+    const authHeader = req.headers.get("Authorization");
+    const headers: HeadersInit = {
+        "Content-Type": "application/json",
+    };
+    if (authHeader) {
+        headers["Authorization"] = authHeader;
+    }
+
     const response = await fetch(`${backendUrl}/api/chat`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query, top_k }),
+      headers,
+      body: JSON.stringify({ query, top_k, conversation_id }),
     });
 
     if (!response.ok) {

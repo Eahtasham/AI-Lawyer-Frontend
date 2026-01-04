@@ -11,12 +11,18 @@ export async function GET(req: NextRequest) {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   const apiUrl = `${backendUrl}/api/stream?query=${encodeURIComponent(query)}`;
 
+  const authHeader = req.headers.get("Authorization");
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+  if (authHeader) {
+    headers["Authorization"] = authHeader;
+  }
+
   try {
     const backendResponse = await fetch(apiUrl, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
     });
 
     if (!backendResponse.ok) {
