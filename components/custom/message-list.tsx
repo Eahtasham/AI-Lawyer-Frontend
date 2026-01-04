@@ -1,3 +1,5 @@
+"use client";
+
 import { Message } from "@/types";
 import { MessageBubble } from "./message-bubble";
 import { useEffect, useRef } from "react";

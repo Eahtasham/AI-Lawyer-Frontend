@@ -7,6 +7,9 @@ import { fetchChatResponse } from "@/lib/api";
 import { ChatSession, Message } from "@/types";
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Menu, Home } from "lucide-react";
 
 export default function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -116,32 +119,75 @@ export default function ChatPage() {
             timestamp: Date.now(),
         };
 
-        setMessages((prev) => [...prev, userMessage]);
+        const aiMessageId = uuidv4();
+        const initialAiMessage: Message = {
+            id: aiMessageId,
+            role: "ai",
+            content: "",
+            timestamp: Date.now(),
+            logs: [],
+            council_opinions: [],
+            isStreaming: true,
+        };
+
+        setMessages((prev) => [...prev, userMessage, initialAiMessage]);
         setIsLoading(true);
 
+        // Function to update the specific AI message in state
+        const updateAiMessage = (updates: Partial<Message>) => {
+            setMessages((prev) => 
+                prev.map((msg) => 
+                    msg.id === aiMessageId ? { ...msg, ...updates } : msg
+                )
+            );
+        };
+
         try {
-            const response = await fetchChatResponse({ query, top_k: 5 });
+            await import("@/lib/api").then(mod => mod.streamChatResponseWithFetch(
+                query,
+                (type, payload) => {
+                    setMessages((prev) => {
+                         const current = prev.find(m => m.id === aiMessageId);
+                         if (!current) return prev;
+                         
+                         const newMsg = { ...current };
 
-            const aiMessage: Message = {
-                id: uuidv4(),
-                role: "ai",
-                content: response.answer,
-                chunks: response.chunks,
-                timestamp: Date.now(),
-            };
+                         if (type === 'log') {
+                             newMsg.logs = [...(newMsg.logs || []), payload];
+                         } else if (type === 'opinion') {
+                             // Check if opinion already exists to avoid dupes (though backend shouldn't send dupes)
+                             const exists = newMsg.council_opinions?.some(op => op.role === payload.role);
+                             if (!exists) {
+                                  newMsg.council_opinions = [...(newMsg.council_opinions || []), payload];
+                             }
+                         } else if (type === 'chunks') {
+                             newMsg.chunks = payload;
+                         } else if (type === 'data') {
+                             if (payload.answer) {
+                                 newMsg.content = payload.answer;
+                                 newMsg.isStreaming = false;
+                             }
+                             if (payload.error) {
+                                 newMsg.content = `Error: ${payload.error}`;
+                                 newMsg.isStreaming = false;
+                             }
+                         }
+                         
+                         return prev.map(m => m.id === aiMessageId ? newMsg : m);
+                    });
+                }
+            ));
 
-            setMessages((prev) => [...prev, aiMessage]);
         } catch (error) {
             console.error("Failed to fetch response:", error);
-            const errorMessage: Message = {
-                id: uuidv4(),
-                role: "ai",
-                content: "Sorry, I encountered an error while processing your request. Please try again.",
-                timestamp: Date.now(),
-            };
-            setMessages((prev) => [...prev, errorMessage]);
+            updateAiMessage({ 
+                content: "Sorry, I encountered an error while processing your request.",
+                isStreaming: false
+            });
         } finally {
             setIsLoading(false);
+            // Ensure streaming flag is off
+            setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, isStreaming: false } : m));
         }
     };
 
@@ -237,6 +283,7 @@ export default function ChatPage() {
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+            {/* Desktop Sidebar */}
             <Sidebar 
                 className="hidden md:flex" 
                 sessions={sessions}
@@ -245,7 +292,38 @@ export default function ChatPage() {
                 onSelectSession={handleSelectSession}
                 onClearHistory={handleClearHistory}
             />
+
             <main className="flex flex-1 flex-col h-full relative min-w-0">
+                {/* Mobile Header */}
+                <div className="flex items-center justify-between p-4 border-b md:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="-ml-2">
+                                <Menu className="h-6 w-6" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 w-[280px] border-r border-white/10 bg-black text-white">
+                             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                             <Sidebar 
+                                className="border-r-0 w-full" 
+                                sessions={sessions}
+                                currentSessionId={currentSessionId}
+                                onNewChat={() => {
+                                    handleNewChat();
+                                    // wrapper to close sheet if needed, but for now specific "close" logic might require controlled state if UX demands
+                                }} 
+                                onSelectSession={handleSelectSession}
+                                onClearHistory={handleClearHistory}
+                            />
+                        </SheetContent>
+                    </Sheet>
+                    <div className="font-semibold text-lg flex items-center gap-2">
+                         <Home className="h-5 w-5" />
+                         AI Lawyer
+                    </div>
+                    <div className="w-8" /> {/* Spacer for centering */}
+                </div>
+
                 <div className="flex-1 overflow-hidden relative flex flex-col"> 
                     {messages.length === 0 ? (
                          <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
