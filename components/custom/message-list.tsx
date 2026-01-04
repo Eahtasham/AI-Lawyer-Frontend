@@ -6,9 +6,11 @@ import { useEffect, useRef } from "react";
 interface MessageListProps {
     messages: Message[];
     isLoading: boolean;
+    onEdit: (messageId: string, newContent: string) => void;
+    onRegenerate: () => void;
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps) {
+export function MessageList({ messages, isLoading, onEdit, onRegenerate }: MessageListProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -20,8 +22,13 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
     return (
         <div className="flex-1 overflow-y-auto p-4">
             <div className="mx-auto flex max-w-3xl flex-col gap-6 pb-12">
-                {messages.map((message) => (
-                    <MessageBubble key={message.id} message={message} />
+                {messages.map((message, index) => (
+                    <MessageBubble 
+                        key={message.id} 
+                        message={message} 
+                        onEdit={(newContent) => onEdit(message.id, newContent)}
+                        onRegenerate={index === messages.length - 1 && message.role === "ai" ? onRegenerate : undefined}
+                    />
                 ))}
                 {isLoading && (
                     <div className="flex w-full gap-4 p-4">
