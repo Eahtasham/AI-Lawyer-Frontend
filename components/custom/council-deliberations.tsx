@@ -1,11 +1,11 @@
 "use client";
 
 import { CouncilOpinion } from "@/types";
-import { 
-    Accordion, 
-    AccordionContent, 
-    AccordionItem, 
-    AccordionTrigger 
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -20,14 +20,14 @@ interface CouncilDeliberationsProps {
 }
 
 export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDeliberationsProps) {
-    if ((!opinions || opinions.length === 0) && (!logs || logs.length === 0)) return null;
-
     const logEndRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll logs
     useEffect(() => {
         logEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [logs]);
+
+    if ((!opinions || opinions.length === 0) && (!logs || logs.length === 0)) return null;
 
     const getRoleIcon = (role: string) => {
         switch (role.toLowerCase()) {
@@ -51,7 +51,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
 
     return (
         <div className="w-full mb-4 space-y-2">
-            
+
             {/* Live Logs Section - Visible while streaming or if logs exist */}
             {logs && logs.length > 0 && (
                 <Accordion type="single" collapsible defaultValue={isStreaming ? "logs" : ""} className="w-full border rounded-lg bg-card/50 shadow-sm">
@@ -63,7 +63,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
                                     System Logs
                                 </span>
                                 {isStreaming && (
-                                     <span className="relative flex h-2 w-2">
+                                    <span className="relative flex h-2 w-2">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                         <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                                     </span>
@@ -82,7 +82,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
                             </div>
                         </AccordionContent>
                     </AccordionItem>
-                 </Accordion>
+                </Accordion>
             )}
 
             {/* Deliberations Section */}
@@ -123,7 +123,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
-             )}
+            )}
         </div>
     );
 }

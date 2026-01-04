@@ -2,7 +2,6 @@
 
 import { Message } from "@/types";
 import { MessageBubble } from "./message-bubble";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useRef } from "react";
 
 interface MessageListProps {
@@ -25,9 +24,9 @@ export function MessageList({ messages, isLoading, onEdit, onRegenerate }: Messa
         <div className="flex-1 overflow-y-auto p-4">
             <div className="mx-auto flex max-w-3xl flex-col gap-6 pb-12">
                 {messages.map((message, index) => (
-                    <MessageBubble 
-                        key={message.id} 
-                        message={message} 
+                    <MessageBubble
+                        key={message.id}
+                        message={message}
                         onEdit={(newContent) => onEdit(message.id, newContent)}
                         onRegenerate={index === messages.length - 1 && message.role === "ai" ? onRegenerate : undefined}
                     />
