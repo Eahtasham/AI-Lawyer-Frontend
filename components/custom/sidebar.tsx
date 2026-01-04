@@ -4,7 +4,6 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus, MessageSquare, Trash2, Home } from "lucide-react";
-import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatSession } from "@/types";
 
