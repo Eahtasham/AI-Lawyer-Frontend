@@ -101,20 +101,20 @@ export function Sidebar({
         <>
             <div 
                 className={cn(
-                    "flex flex-col h-screen bg-zinc-950 border-r border-white/10 transition-all duration-300 ease-in-out relative",
+                    "flex flex-col h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out relative",
                     isCollapsed ? "w-[70px]" : "w-[300px]",
                     className
                 )}
             >
                 {/* Header */}
                 <div className={cn(
-                    "flex h-16 items-center border-b border-white/10 shrink-0",
+                    "flex h-16 items-center border-b border-sidebar-border shrink-0",
                     isCollapsed ? "justify-center" : "justify-between px-4"
                 )}>
                     {!isCollapsed ? (
                         <>
-                            <Link href="/" className="flex items-center gap-2 font-semibold text-white tracking-tight">
-                                <div className="h-8 w-8 rounded-lg bg-white text-black flex items-center justify-center">
+                            <Link href="/" className="flex items-center gap-2 font-semibold text-sidebar-foreground tracking-tight">
+                                <div className="h-8 w-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center">
                                     <Home className="h-5 w-5" />
                                 </div>
                                 <span>SamVidhaan AI</span>
@@ -123,25 +123,25 @@ export function Sidebar({
                                 variant="ghost" 
                                 size="icon"
                                 onClick={() => setIsCollapsed(true)}
-                                className="text-white/50 hover:text-white hover:bg-white/10"
+                                className="text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
                             >
                                 <PanelLeftClose className="h-4 w-4" />
                             </Button>
                         </>
                     ) : (
                         <div 
-                            className="group relative flex h-10 w-10 items-center justify-center cursor-pointer rounded-lg hover:bg-white/10 transition-colors"
+                            className="group relative flex h-10 w-10 items-center justify-center cursor-pointer rounded-lg hover:bg-sidebar-accent transition-colors"
                             onClick={() => setIsCollapsed(false)}
                         >
                             {/* Home Icon: Visible by default, hidden on hover */}
                             <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-0">
-                                <div className="h-8 w-8 rounded-lg bg-white text-black flex items-center justify-center">
+                                <div className="h-8 w-8 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center">
                                     <Home className="h-5 w-5" />
                                 </div>
                             </div>
                             
                             {/* Expand Icon: Hidden by default, visible on hover */}
-                            <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-200 opacity-0 group-hover:opacity-100 text-white">
+                            <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-200 opacity-0 group-hover:opacity-100 text-sidebar-foreground">
                                 <PanelLeftOpen className="h-5 w-5" />
                             </div>
                         </div>
@@ -155,7 +155,7 @@ export function Sidebar({
                             <Button
                                 onClick={onNewChat}
                                 className={cn(
-                                    "w-full justify-start gap-2 bg-zinc-900 text-white hover:bg-zinc-800 border border-white/10 shadow-sm transition-all",
+                                    "w-full justify-start gap-2 bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80 border border-sidebar-border shadow-sm transition-all",
                                     isCollapsed && "justify-center px-0 h-10 w-10 mx-auto rounded-xl"
                                 )}
                             >
@@ -171,7 +171,7 @@ export function Sidebar({
                 <div className="flex-1 overflow-hidden">
                     <ScrollArea className="h-full px-3">
                         {!isCollapsed && (
-                            <h2 className="mb-2 px-2 text-[10px] font-medium uppercase tracking-wider text-white/40">
+                            <h2 className="mb-2 px-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
                                 Recent Activity
                             </h2>
                         )}
@@ -180,9 +180,9 @@ export function Sidebar({
                                 <div 
                                     key={session.id} 
                                     className={cn(
-                                        "group flex items-center w-full rounded-md transition-all duration-200 focus-within:bg-zinc-800/50",
-                                        "hover:bg-zinc-800/50",
-                                        currentSessionId === session.id ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-400"
+                                        "group flex items-center w-full rounded-md transition-all duration-200 focus-within:bg-sidebar-accent/50",
+                                        "hover:bg-sidebar-accent/50",
+                                        currentSessionId === session.id ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm" : "text-muted-foreground"
                                     )}
                                 >
                                     {/* Primary Action Button (Title + Navigation) */}
@@ -195,7 +195,7 @@ export function Sidebar({
                                                     className={cn(
                                                         "w-full h-auto py-2 px-2 hover:bg-transparent justify-start gap-2 font-normal transition-none",
                                                         isCollapsed && "justify-center px-0",
-                                                        currentSessionId === session.id ? "text-white" : "text-zinc-400 group-hover:text-zinc-200"
+                                                        currentSessionId === session.id ? "text-sidebar-foreground" : "text-muted-foreground group-hover:text-sidebar-foreground"
                                                     )}
                                                 >
                                                     {/* Icon State */}
@@ -223,7 +223,7 @@ export function Sidebar({
                                             
                                             {/* Tooltip (Collapsed only) */}
                                             {isCollapsed && (
-                                                <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-zinc-300">
+                                                <TooltipContent side="right" className="bg-popover border-border text-popover-foreground">
                                                     {session.title || "New Chat"}
                                                 </TooltipContent>
                                             )}
@@ -241,16 +241,16 @@ export function Sidebar({
                                                 onOpenChange={(open) => setOpenMenuId(open ? session.id : null)}
                                             >
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-700/50">
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent">
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-48 bg-zinc-950 border-zinc-800 text-zinc-200">
-                                                    <DropdownMenuItem onClick={() => handleRenameClick(session)} className="focus:bg-zinc-800 cursor-pointer">
+                                                <DropdownMenuContent align="end" className="w-48 bg-popover border-border text-popover-foreground">
+                                                    <DropdownMenuItem onClick={() => handleRenameClick(session)} className="focus:bg-sidebar-accent cursor-pointer">
                                                         <Pencil className="mr-2 h-3.5 w-3.5" />
                                                         <span>Rename</span>
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => togglePinSession(session.id, !session.isPinned)} className="focus:bg-zinc-800 cursor-pointer">
+                                                    <DropdownMenuItem onClick={() => togglePinSession(session.id, !session.isPinned)} className="focus:bg-sidebar-accent cursor-pointer">
                                                         {session.isPinned ? (
                                                             <>
                                                                 <PinOff className="mr-2 h-3.5 w-3.5" />
@@ -263,7 +263,7 @@ export function Sidebar({
                                                             </>
                                                         )}
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuSeparator className="bg-zinc-800" />
+                                                    <DropdownMenuSeparator className="bg-border" />
                                                     <DropdownMenuItem 
                                                         onClick={() => onDeleteSession(session.id)}
                                                         className="text-red-400 focus:text-red-400 focus:bg-red-950/20 cursor-pointer"
@@ -282,19 +282,19 @@ export function Sidebar({
                 </div>
 
                 {/* Footer / User Profile */}
-                <div className="p-3 mt-auto border-t border-white/10">
+                <div className="p-3 mt-auto border-t border-sidebar-border">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
                                 variant="ghost"
                                 className={cn(
-                                    "w-full h-auto p-2 hover:bg-white/10 transition-colors",
+                                    "w-full h-auto p-2 hover:bg-sidebar-accent transition-colors",
                                     isCollapsed ? "justify-center" : "justify-start gap-3"
                                 )}
                             >
-                                <Avatar className="h-8 w-8 border border-white/20 rounded-lg">
+                                <Avatar className="h-8 w-8 border border-sidebar-border rounded-lg">
                                     <AvatarImage src={user?.user_metadata?.avatar_url} />
-                                    <AvatarFallback className="bg-zinc-800 text-white rounded-lg text-xs">
+                                    <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground rounded-lg text-xs">
                                         {userInitials}
                                     </AvatarFallback>
                                 </Avatar>
@@ -302,14 +302,14 @@ export function Sidebar({
                                 {!isCollapsed && (
                                     <>
                                         <div className="flex flex-col items-start truncate text-left flex-1 min-w-0">
-                                            <span className="text-sm font-medium text-white truncate w-full">
+                                            <span className="text-sm font-medium text-sidebar-foreground truncate w-full">
                                                 {user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}
                                             </span>
-                                            <span className="text-xs text-white/40 truncate w-full">
+                                            <span className="text-xs text-muted-foreground truncate w-full">
                                                 {user?.email || ""}
                                             </span>
                                         </div>
-                                        <ChevronsUpDown className="h-4 w-4 text-white/40 shrink-0" />
+                                        <ChevronsUpDown className="h-4 w-4 text-muted-foreground shrink-0" />
                                     </>
                                 )}
                             </Button>
@@ -318,18 +318,18 @@ export function Sidebar({
                             side="right" 
                             align="end" 
                             sideOffset={10}
-                            className="w-56 bg-zinc-950 border-white/10 text-white p-1"
+                            className="w-56 bg-popover border-border text-popover-foreground p-1"
                         >
                             <DropdownMenuLabel className="font-normal">
                                 <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium leading-none text-white">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</p>
-                                    <p className="text-xs leading-none text-white/50">{user?.email}</p>
+                                    <p className="text-sm font-medium leading-none text-sidebar-foreground">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</p>
+                                    <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                                 </div>
                             </DropdownMenuLabel>
-                            <DropdownMenuSeparator className="bg-white/10" />
-                            <DropdownMenuItem onClick={() => setIsSettingsOpen(true)} className="focus:bg-white/10 cursor-pointer">
+                            <DropdownMenuSeparator className="bg-border" />
+                            <DropdownMenuItem onClick={() => setIsSettingsOpen(true)} className="focus:bg-sidebar-accent cursor-pointer">
                                 <Settings className="mr-2 h-4 w-4" />
-                                <span className="text-white">Account Settings</span>
+                                <span className="text-sidebar-foreground">Account Settings</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={onLogout} className="text-red-400 focus:text-red-400 focus:bg-red-500/10 cursor-pointer">
                                 <LogOut className="mr-2 h-4 w-4" />
@@ -341,10 +341,10 @@ export function Sidebar({
             </div>
 
             <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
-                <DialogContent className="sm:max-w-[425px] bg-zinc-950 text-white border-white/10">
+                <DialogContent className="sm:max-w-[425px] bg-popover text-popover-foreground border-border">
                     <DialogHeader>
                         <DialogTitle>Rename Chat</DialogTitle>
-                        <DialogDescription className="text-white/50">
+                        <DialogDescription className="text-muted-foreground">
                             Enter a new name for this conversation.
                         </DialogDescription>
                     </DialogHeader>
@@ -358,16 +358,16 @@ export function Sidebar({
                                     id="name"
                                     value={newTitle}
                                     onChange={(e) => setNewTitle(e.target.value)}
-                                    className="col-span-3 bg-zinc-900 border-white/10 text-white focus-visible:ring-white/20"
+                                    className="col-span-3 bg-secondary border-border text-foreground focus-visible:ring-ring"
                                     autoFocus
                                 />
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="ghost" onClick={() => setIsRenameDialogOpen(false)} className="hover:bg-white/10 hover:text-white" disabled={isRenaming}>
+                            <Button type="button" variant="ghost" onClick={() => setIsRenameDialogOpen(false)} className="hover:bg-secondary hover:text-secondary-foreground" disabled={isRenaming}>
                                 Cancel
                             </Button>
-                            <Button type="submit" className="bg-white text-black hover:bg-white/90" disabled={isRenaming}>
+                            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={isRenaming}>
                                 {isRenaming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save changes
                             </Button>
