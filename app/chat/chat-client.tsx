@@ -15,6 +15,17 @@ import { useChatStore } from "@/lib/store/chat-store";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+    DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { Settings, LogOut, User as UserIcon } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SettingsModal } from "@/components/custom/settings-modal";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -64,6 +75,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
 
     const [isLoading, setIsLoading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     // Initialize token with prop
     const [token, setToken] = useState<string | null>(accessToken);
@@ -74,6 +86,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     // If no session is selected but sessions exist, select first? Or handled by store init?
     // We'll trust the store state or fallback.
     const messages = currentSession?.messages || [];
+
+    const userInitials = user?.email?.substring(0, 2).toUpperCase() || "AI";
 
     useEffect(() => {
         setMounted(true);
@@ -395,8 +409,6 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 onNewChat={handleNewChat}
                 onSelectSession={handleSelectSession}
                 onDeleteSession={handleDeleteSession}
-                onLogout={handleLogout}
-                user={user}
             />
 
             <main className="flex flex-1 flex-col h-full relative min-w-0">
@@ -419,8 +431,6 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                                 }}
                                 onSelectSession={handleSelectSession}
                                 onDeleteSession={handleDeleteSession}
-                                onLogout={handleLogout}
-                                user={user}
                             />
                         </SheetContent>
                     </Sheet>
@@ -429,7 +439,38 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         SamVidhaan AI
                     </div>
                     {/* Placeholder for balance */}
-                     <div className="w-8" />
+                    <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={user?.user_metadata?.avatar_url} />
+                                        <AvatarFallback>{userInitials}</AvatarFallback>
+                                    </Avatar>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end" sideOffset={12} forceMount>
+                                <DropdownMenuLabel className="font-normal">
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-medium leading-none">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</p>
+                                        <p className="text-xs leading-none text-muted-foreground">
+                                            {user?.email}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => setIsSettingsOpen(true)} className="cursor-pointer">
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    <span>Settings</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleLogout} className="text-red-500 hover:text-red-600 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer">
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
                 
                 {/* Desktop Header */}
@@ -473,6 +514,40 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                                 </AlertDialogContent>
                             </AlertDialog>
                          )}
+
+                     </div>
+
+                     <div className="flex items-center gap-2 border-l border-white/10 pl-4 ml-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={user?.user_metadata?.avatar_url} />
+                                        <AvatarFallback>{userInitials}</AvatarFallback>
+                                    </Avatar>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end" forceMount>
+                                <DropdownMenuLabel className="font-normal">
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-medium leading-none">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</p>
+                                        <p className="text-xs leading-none text-muted-foreground">
+                                            {user?.email}
+                                        </p>
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => setIsSettingsOpen(true)} className="cursor-pointer">
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    <span>Settings</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleLogout} className="text-red-500 hover:text-red-600 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer">
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                      </div>
                  </div>
 
@@ -500,6 +575,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                     <ChatInput onSend={handleSend} isLoading={isLoading} />
                 </div>
             </main>
+            <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} user={user} />
         </div>
     );
 }
