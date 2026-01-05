@@ -238,7 +238,7 @@ export function Sidebar({
                                                         {!isCollapsed && (
                                                             <span className="truncate text-sm">
                                                                 {(session.title || "New Chat").length > 30
-                                                                    ? (session.title || "New Chat").slice(0, 30) + "..."
+                                                                    ? (session.title || "New Chat").slice(0, 18) + "..."
                                                                     : (session.title || "New Chat")}
                                                             </span>
                                                         )}
@@ -257,7 +257,7 @@ export function Sidebar({
                                         {/* Secondary Actions (Menu) - Expanded Only */}
                                         {!isCollapsed && (
                                             <div className={cn(
-                                                "shrink-0 w-8 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity",
+                                                "shrink-0 w-8 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity",
                                                 openMenuId === session.id ? "opacity-100" : ""
                                             )}>
                                                 <DropdownMenu
