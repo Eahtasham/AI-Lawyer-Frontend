@@ -19,6 +19,9 @@ interface ChatState {
 
   // Async Actions
   syncSessions: () => Promise<void>
+  deleteSession: (id: string) => Promise<void>
+  clearStore: () => void
+  updateMessages: (sessionId: string, messages: Message[]) => void
 }
 
 export const useChatStore = create<ChatState>()(

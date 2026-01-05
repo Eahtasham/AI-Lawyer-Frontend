@@ -484,6 +484,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                             isLoading={isLoading}
                             onEdit={handleEdit}
                             onRegenerate={handleRegenerate}
+                            user={user}
                         />
                     )}
                 </div>

@@ -1,30 +1,69 @@
-
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useState } from 'react'
+import { Github, Mail } from 'lucide-react'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   
-  const handleLogin = async () => {
+  const handleGoogleLogin = async () => {
     setLoading(true)
     const supabase = createClient()
-    
-    // Sign in with Google
-    // Note: redirectTo should be your deployed URL or localhost:3000/auth/callback
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback?next=/chat`,
       },
     })
-    
     if (error) {
         setLoading(false)
-        console.error("Login failed:", error.message)
+        console.error("Google Login failed:", error.message)
+    }
+  }
+
+  const handleGithubLogin = async () => {
+    setLoading(true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/chat`,
+      },
+    })
+    if (error) {
+        setLoading(false)
+        console.error("Github Login failed:", error.message)
+    }
+  }
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+
+    setLoading(true)
+    setMessage(null)
+    const supabase = createClient()
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/chat`,
+      },
+    })
+
+    setLoading(false)
+
+    if (error) {
+      setMessage({ type: 'error', text: error.message })
+    } else {
+      setMessage({ type: 'success', text: 'Check your email for the login link!' })
     }
   }
 
@@ -46,28 +85,35 @@ export default function LoginPage() {
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                 </svg>
             </div>
-          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold">Log in or sign up</CardTitle>
           <CardDescription>
-            Sign in to access your legal assistant
+            Choose your preferred method to continue
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <Button 
-                className="w-full" 
-                variant="outline" 
-                onClick={handleLogin}
-                disabled={loading}
-            >
-              {loading ? (
-                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              ) : (
-                <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                    <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                </svg>
-              )}
-              Continue with Google
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+                <Button 
+                    variant="outline" 
+                    onClick={handleGoogleLogin}
+                    disabled={loading}
+                    className="w-full"
+                >
+                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                    </svg>
+                    Google
+                </Button>
+                <Button 
+                    variant="outline" 
+                    onClick={handleGithubLogin}
+                    disabled={loading}
+                    className="w-full"
+                >
+                    <Github className="mr-2 h-4 w-4" />
+                    GitHub
+                </Button>
+            </div>
             
             <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -75,17 +121,36 @@ export default function LoginPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-background px-2 text-muted-foreground">
-                    Or
+                    Or continue with email
                     </span>
                 </div>
             </div>
-             <Button 
-                className="w-full" 
-                variant="ghost" 
-                disabled
-            >
-              Sign in with Email (Coming Soon)
-            </Button>
+
+            <form onSubmit={handleEmailLogin} className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="email">Email address</Label>
+                    <Input 
+                        id="email" 
+                        type="email" 
+                        placeholder="name@example.com" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={loading}
+                    />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
+                    <Mail className="mr-2 h-4 w-4" />
+                    Sign in with Email
+                </Button>
+            </form>
+
+            {message && (
+                <div className={`p-3 rounded-md text-sm text-center ${message.type === 'error' ? 'bg-destructive/15 text-destructive' : 'bg-green-500/15 text-green-600 dark:text-green-400'}`}>
+                    {message.text}
+                </div>
+            )}
           </div>
         </CardContent>
       </Card>

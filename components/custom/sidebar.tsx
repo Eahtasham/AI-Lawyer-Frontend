@@ -32,6 +32,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { SettingsModal } from "./settings-modal";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     sessions: ChatSession[];
@@ -59,6 +60,7 @@ export function Sidebar({
     const [newTitle, setNewTitle] = useState("");
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     // Auto-collapse on small screens if needed, or rely on parent hiding it.
     // For this implementation, we allow manual toggle.
@@ -295,7 +297,7 @@ export function Sidebar({
                                     <>
                                         <div className="flex flex-col items-start truncate text-left flex-1 min-w-0">
                                             <span className="text-sm font-medium text-white truncate w-full">
-                                                {user?.email?.split('@')[0] || "User"}
+                                                {user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}
                                             </span>
                                             <span className="text-xs text-white/40 truncate w-full">
                                                 {user?.email || ""}
@@ -314,14 +316,14 @@ export function Sidebar({
                         >
                             <DropdownMenuLabel className="font-normal">
                                 <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium leading-none text-white">{user?.email?.split('@')[0]}</p>
+                                    <p className="text-sm font-medium leading-none text-white">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</p>
                                     <p className="text-xs leading-none text-white/50">{user?.email}</p>
                                 </div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator className="bg-white/10" />
-                            <DropdownMenuItem className="focus:bg-white/10 cursor-pointer">
+                            <DropdownMenuItem onClick={() => setIsSettingsOpen(true)} className="focus:bg-white/10 cursor-pointer">
                                 <Settings className="mr-2 h-4 w-4" />
-                                <span>Account Settings</span>
+                                <span className="text-white">Account Settings</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={onLogout} className="text-red-400 focus:text-red-400 focus:bg-red-500/10 cursor-pointer">
                                 <LogOut className="mr-2 h-4 w-4" />
@@ -366,6 +368,8 @@ export function Sidebar({
                     </form>
                 </DialogContent>
             </Dialog>
+
+            <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} user={user || null} />
         </>
         </TooltipProvider>
     );
