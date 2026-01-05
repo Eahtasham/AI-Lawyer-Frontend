@@ -67,7 +67,7 @@ export function SettingsModal({ open, onOpenChange, user }: SettingsModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] h-[500px] flex flex-col gap-0 p-0 overflow-hidden">
+      <DialogContent className="w-[95%] sm:max-w-[600px] h-[60vh] sm:h-[500px] flex flex-col gap-0 p-0 overflow-hidden rounded-lg">
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>Account Settings</DialogTitle>
           <DialogDescription>
@@ -76,19 +76,19 @@ export function SettingsModal({ open, onOpenChange, user }: SettingsModalProps) 
         </DialogHeader>
         
         <div className="flex flex-1 overflow-hidden">
-             <Tabs defaultValue="general" orientation="vertical" className="flex flex-row w-full h-full">
+             <Tabs defaultValue="general" orientation="vertical" className="flex flex-col md:flex-row w-full h-full">
                 {/* Sidebar */}
-                <div className="w-48 border-r bg-muted/30 p-4 space-y-2 shrink-0">
-                    <TabsList className="flex flex-col h-auto items-start bg-transparent p-0 space-y-1 w-full">
-                        <TabsTrigger value="general" className="w-full justify-start px-3 py-2 data-[state=active]:bg-secondary">
+                <div className="w-full md:w-48 border-b md:border-b-0 md:border-r bg-muted/30 p-2 md:p-4 space-y-0 md:space-y-2 shrink-0">
+                    <TabsList className="flex flex-row md:flex-col h-auto items-center md:items-start bg-transparent p-0 space-x-1 md:space-x-0 md:space-y-1 w-full justify-between md:justify-start">
+                        <TabsTrigger value="general" className="flex-1 md:w-full justify-center md:justify-start px-3 py-2 data-[state=active]:bg-secondary text-xs md:text-sm">
                             <UserIcon className="mr-2 h-4 w-4" />
                             General
                         </TabsTrigger>
-                        <TabsTrigger value="appearance" className="w-full justify-start px-3 py-2 data-[state=active]:bg-secondary">
+                        <TabsTrigger value="appearance" className="flex-1 md:w-full justify-center md:justify-start px-3 py-2 data-[state=active]:bg-secondary text-xs md:text-sm">
                             <Sun className="mr-2 h-4 w-4" />
                             Appearance
                         </TabsTrigger>
-                         <TabsTrigger value="danger" className="w-full justify-start px-3 py-2 data-[state=active]:bg-destructive/10 data-[state=active]:text-destructive text-destructive/80 hover:text-destructive hover:bg-destructive/5">
+                         <TabsTrigger value="danger" className="flex-1 md:w-full justify-center md:justify-start px-3 py-2 data-[state=active]:bg-destructive/10 data-[state=active]:text-destructive text-destructive/80 hover:text-destructive hover:bg-destructive/5 text-xs md:text-sm">
                             <AlertTriangle className="mr-2 h-4 w-4" />
                             Danger Zone
                         </TabsTrigger>
@@ -96,7 +96,7 @@ export function SettingsModal({ open, onOpenChange, user }: SettingsModalProps) 
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 p-6 overflow-y-auto">
+                <div className="flex-1 p-4 md:p-6 overflow-y-auto">
                      <TabsContent value="general" className="mt-0 space-y-6">
                         <div className="space-y-4">
                             <div className="flex items-center gap-4">
@@ -158,7 +158,7 @@ export function SettingsModal({ open, onOpenChange, user }: SettingsModalProps) 
 
                     <TabsContent value="danger" className="mt-0 space-y-6">
                          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 space-y-4">
-                            <div className="flex items-start gap-4">
+                            <div className="flex flex-col md:flex-row items-start gap-4">
                                 <div className="p-2 rounded-full bg-destructive/10 text-destructive mt-1">
                                     <AlertTriangle className="h-5 w-5" />
                                 </div>

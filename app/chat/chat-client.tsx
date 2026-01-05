@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Home, Trash2, Loader2 } from "lucide-react";
+import { Menu, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useChatStore } from "@/lib/store/chat-store";
 import { createClient } from "@/lib/supabase/client";
@@ -25,17 +25,7 @@ import {
 import { Settings, LogOut, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SettingsModal } from "@/components/custom/settings-modal";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 
 // Add Props interface
 interface ChatClientProps {
@@ -47,7 +37,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     // Zustand Store
     const sessions = useChatStore((state) => state.sessions);
     const currentSessionId = useChatStore((state) => state.currentSessionId);
-    
+
     // Actions (stable functions, can be selected individually or destructured from state if we accept re-renders)
     // To avoid "new object" issues, we select the state itself or use multiple selectors.
     // For readability, let's select individually or just use the store actions directly where needed.
@@ -74,7 +64,6 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     };
 
     const [isLoading, setIsLoading] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     // Initialize token with prop
@@ -91,43 +80,43 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
 
     useEffect(() => {
         setMounted(true);
-        
+
         // Sync with Supabase
         actions.syncSessions();
 
         // Listen for Auth Changes (e.g. token refresh)
         const supabase = createClient();
-        
+
         // Get initial user
         supabase.auth.getUser().then(({ data: { user } }) => {
             setUser(user);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-             if (session) {
-                 setToken(session.access_token);
-                 setUser(session.user);
-             } else if (event === 'SIGNED_OUT') {
-                 setToken(null);
-                 setUser(null);
-                 router.push("/login");
-             }
+            if (session) {
+                setToken(session.access_token);
+                setUser(session.user);
+            } else if (event === 'SIGNED_OUT') {
+                setToken(null);
+                setUser(null);
+                router.push("/login");
+            }
         });
-        
+
         // Initial setup if no sessions
         if (useChatStore.getState().sessions.length === 0) {
-             handleNewChat();
+            handleNewChat();
         }
 
         return () => {
-             subscription.unsubscribe();
+            subscription.unsubscribe();
         };
     }, [accessToken]);
 
     // Effect to ensuring a session is selected if list isn't empty but current is null?
     useEffect(() => {
         if (mounted && sessions.length > 0 && !currentSessionId) {
-             actions.setCurrentSessionId(sessions[0].id);
+            actions.setCurrentSessionId(sessions[0].id);
         }
     }, [mounted, sessions, currentSessionId]);
 
@@ -158,8 +147,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     };
 
     const handleDeleteSession = async (sessionId: string) => {
-        setIsDeleting(true);
-        
+
         // If we are authenticated, delete from backend first
         if (token) {
             try {
@@ -173,15 +161,14 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 }
             }
         }
-        
+
         // Optimistic delete (or rather, now synchronized)
         actions.deleteSession(sessionId);
-        
+
         // If current session was deleted, switch to new chat (handled by store usually, but explicit check good)
         if (currentSessionId === sessionId) {
             handleNewChat();
         }
-        setIsDeleting(false);
     };
 
     const handleLogout = async () => {
@@ -215,13 +202,13 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         // Optimistically update Store using messages of current session
         const updatedMessages = [...messages, userMessage, initialAiMessage];
         actions.updateMessages(currentSessionId, updatedMessages);
-        
+
         setIsLoading(true);
 
         // Helper to update specific message in the list
         const updateAiMessage = (updates: Partial<Message>) => {
             const currentMsgs = useChatStore.getState().sessions.find(s => s.id === currentSessionId)?.messages || [];
-            const newMsgs = currentMsgs.map(msg => 
+            const newMsgs = currentMsgs.map(msg =>
                 msg.id === aiMessageId ? { ...msg, ...updates } : msg
             );
             actions.updateMessages(currentSessionId, newMsgs);
@@ -235,16 +222,16 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             // Actually, I modified `stream_chat` to handle legacy style.
             // Ideally, we should switch to `fetchChatResponse` (POST) if we want better control, but user wanted "Live Streaming".
             // So we stick to stream.
-            
+
             await streamChatResponseWithFetch(
                 query,
                 (type, payload) => {
                     // Get latest messages from store to ensure no race conditions (though simple variable capture works for now)
-                     const currentMsgs = useChatStore.getState().sessions.find(s => s.id === currentSessionId)?.messages || [];
-                     const currentAiMsg = currentMsgs.find(m => m.id === aiMessageId);
-                     if (!currentAiMsg) return;
+                    const currentMsgs = useChatStore.getState().sessions.find(s => s.id === currentSessionId)?.messages || [];
+                    const currentAiMsg = currentMsgs.find(m => m.id === aiMessageId);
+                    if (!currentAiMsg) return;
 
-                     const newMsg = { ...currentAiMsg };
+                    const newMsg = { ...currentAiMsg };
 
                     if (type === 'log') {
                         newMsg.logs = [...(newMsg.logs || []), payload as string];
@@ -267,7 +254,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                             newMsg.isStreaming = false;
                         }
                     }
-                    
+
                     // Update store
                     const newerMsgs = currentMsgs.map(m => m.id === aiMessageId ? newMsg : m);
                     actions.updateMessages(currentSessionId, newerMsgs);
@@ -285,12 +272,12 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         } finally {
             setIsLoading(false);
             updateAiMessage({ isStreaming: false });
-            
+
             // Generate title if new chat
             const session = useChatStore.getState().sessions.find(s => s.id === currentSessionId);
             if (session && (session.title === "New Chat" || !session.title)) {
-                 const title = query.slice(0, 30) + (query.length > 30 ? "..." : "");
-                 actions.updateSession(currentSessionId, { title });
+                const title = query.slice(0, 30) + (query.length > 30 ? "..." : "");
+                actions.updateSession(currentSessionId, { title });
             }
         }
     };
@@ -298,12 +285,12 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const handleEdit = async (messageId: string, newContent: string) => {
         // Edit logic similiar to original but using store
         if (!currentSessionId) return;
-        
+
         const index = messages.findIndex((m) => m.id === messageId);
         if (index === -1) return;
 
         const truncatedHistory = messages.slice(0, index);
-        
+
         const updatedMessage: Message = {
             ...messages[index],
             content: newContent,
@@ -317,12 +304,12 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             timestamp: Date.now(),
             isStreaming: true // Or false if using fetchChatResponse (non-stream)
         };
-        
+
         // Update store with new history + placeholder AI
         // Wait, handleEdit in original used `fetchChatResponse` (non-streaming).
         // I should stick to that or upgrade to stream. Original used `fetchChatResponse`.
         // So `isStreaming` false initially, but actually `fetchChatResponse` awaits full response.
-        
+
         // Optimistic update
         actions.updateMessages(currentSessionId, [...truncatedHistory, updatedMessage]);
         setIsLoading(true);
@@ -340,12 +327,12 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 chunks: response.chunks,
                 timestamp: Date.now(),
             };
-            
+
             actions.updateMessages(currentSessionId, [...truncatedHistory, updatedMessage, finalAiMessage]);
 
         } catch (error) {
             console.error("Failed to fetch response:", error);
-             const errorMessage: Message = {
+            const errorMessage: Message = {
                 id: uuidv4(),
                 role: "ai",
                 content: "Sorry, I encountered an error while processing your request. Please try again.",
@@ -358,14 +345,14 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     };
 
     const handleRegenerate = async () => {
-         if (!currentSessionId || messages.length < 2) return;
+        if (!currentSessionId || messages.length < 2) return;
 
         const lastMessage = messages[messages.length - 1];
         if (lastMessage.role !== "ai") return; // Can only regenerate AI response
 
         const newHistory = messages.slice(0, -1);
         const queryMessage = newHistory[newHistory.length - 1];
-        
+
         if (queryMessage.role !== "user") return;
 
         // Reset to history without last AI
@@ -385,11 +372,11 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 chunks: response.chunks,
                 timestamp: Date.now(),
             };
-             actions.updateMessages(currentSessionId, [...newHistory, aiMessage]);
+            actions.updateMessages(currentSessionId, [...newHistory, aiMessage]);
 
         } catch (error) {
-             console.error("Failed to fetch response:", error);
-             // Error handling
+            console.error("Failed to fetch response:", error);
+            // Error handling
         } finally {
             setIsLoading(false);
         }
@@ -472,56 +459,26 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         </DropdownMenu>
                     </div>
                 </div>
-                
+
                 {/* Desktop Header */}
-                 <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-white/10 bg-background/95 backdrop-blur z-20 h-16">
-                     <div className="flex flex-col">
-                         <h2 className="text-lg font-semibold tracking-tight truncate max-w-xl">
-                             {currentSession?.title || "New Chat"}
-                         </h2>
-                         <p className="text-xs text-muted-foreground">
-                             {messages.length} messages
-                         </p>
-                     </div>
-                     <div className="flex items-center gap-2">
-                         {currentSessionId && messages.length > 0 && (
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10" title="Delete Chat">
-                                        <Trash2 className="h-5 w-5" />
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent className="bg-zinc-950 border-white/10 text-white">
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Conversation?</AlertDialogTitle>
-                                        <AlertDialogDescription className="text-white/60">
-                                            This action cannot be undone. This will permanently delete your conversation history.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel className="bg-transparent border-white/10 hover:bg-white/10 hover:text-white text-white">Cancel</AlertDialogCancel>
-                                        <AlertDialogAction 
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                handleDeleteSession(currentSessionId);
-                                            }}
-                                            className="bg-red-500 text-white hover:bg-red-600 border-none"
-                                            disabled={isDeleting}
-                                        >
-                                            {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Delete"}
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                         )}
+                <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-white/10 bg-background/95 backdrop-blur z-20 h-16">
+                    <div className="flex flex-col">
+                        <h2 className="text-lg font-semibold tracking-tight truncate max-w-xl">
+                            {currentSession?.title || "New Chat"}
+                        </h2>
+                        <p className="text-xs text-muted-foreground">
+                            {messages.length} messages
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
 
-                     </div>
+                    </div>
 
-                     <div className="flex items-center gap-2 border-l border-white/10 pl-4 ml-2">
+                    <div className="flex items-center gap-2 border-l border-white/10 pl-4 ml-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                                    <Avatar className="h-8 w-8">
+                                    <Avatar className="h-10 w-10">
                                         <AvatarImage src={user?.user_metadata?.avatar_url} />
                                         <AvatarFallback>{userInitials}</AvatarFallback>
                                     </Avatar>
@@ -548,8 +505,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                     </div>
-                 </div>
+                    </div>
+                </div>
 
                 <div className="flex-1 overflow-hidden relative flex flex-col">
                     {messages.length === 0 ? (

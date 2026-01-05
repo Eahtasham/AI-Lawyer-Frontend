@@ -20,6 +20,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useChatStore } from "@/lib/store/chat-store";
@@ -53,6 +64,9 @@ export function Sidebar({
     const [isRenaming, setIsRenaming] = useState(false);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Auto-collapse on small screens if needed, or rely on parent hiding it.
     // For this implementation, we allow manual toggle.
@@ -74,6 +88,25 @@ export function Sidebar({
             } finally {
                 setIsRenaming(false);
             }
+        }
+    };
+
+    const handleDeleteClick = (sessionId: string) => {
+        setSessionToDelete(sessionId);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (sessionToDelete) {
+             setIsDeleting(true);
+             try {
+                await onDeleteSession(sessionToDelete);
+             } finally {
+                setIsDeleting(false);
+                setIsDeleteDialogOpen(false);
+                setSessionToDelete(null);
+             }
         }
     };
 
@@ -256,7 +289,7 @@ export function Sidebar({
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator className="bg-border" />
                                                         <DropdownMenuItem
-                                                            onClick={() => onDeleteSession(session.id)}
+                                                            onClick={() => handleDeleteClick(session.id)}
                                                             className="text-red-400 focus:text-red-400 focus:bg-red-950/20 cursor-pointer"
                                                         >
                                                             <Trash2 className="mr-2 h-3.5 w-3.5" />
@@ -297,7 +330,7 @@ export function Sidebar({
                                     />
                                 </div>
                             </div>
-                            <DialogFooter>
+                            <DialogFooter className="flex-row justify-end space-x-2">
                                 <Button type="button" variant="ghost" onClick={() => setIsRenameDialogOpen(false)} className="hover:bg-secondary hover:text-secondary-foreground" disabled={isRenaming}>
                                     Cancel
                                 </Button>
@@ -309,6 +342,27 @@ export function Sidebar({
                         </form>
                     </DialogContent>
                 </Dialog>
+
+                <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <AlertDialogContent className="bg-popover border-border text-popover-foreground">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Conversation?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-muted-foreground">
+                                This action cannot be undone. This will permanently delete your conversation history.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-transparent border-border hover:bg-secondary hover:text-secondary-foreground text-popover-foreground">Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleDeleteConfirm}
+                                className="bg-red-500 text-white hover:bg-red-600 border-none"
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Delete"}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
 
             </>
         </TooltipProvider>
