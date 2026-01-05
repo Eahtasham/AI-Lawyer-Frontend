@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/custom/theme-toggle";
-import { Scale, LogOut, Settings, User as UserIcon } from "lucide-react";
+import { Scale, LogOut, Settings, User as UserIcon, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -24,6 +24,7 @@ export function Header() {
     const [user, setUser] = useState<User | null>(null);
     const [mounted, setMounted] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const clearStore = useChatStore((state) => state.clearStore);
     const router = useRouter();
 
@@ -46,12 +47,15 @@ export function Header() {
         };
     }, []);
 
-    const handleLogout = async () => {
+    const handleLogout = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsLoggingOut(true);
         const supabase = createClient();
         await supabase.auth.signOut();
         clearStore();
         setUser(null);
         router.push("/login");
+        // No need to set false as we redirect
     };
 
     const userInitials = user?.email?.substring(0, 2).toUpperCase() || "AI";
@@ -108,8 +112,12 @@ export function Header() {
                                     <span>Settings</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleLogout} className="text-red-500 hover:text-red-600 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer">
-                                    <LogOut className="mr-2 h-4 w-4" />
+                                <DropdownMenuItem onClick={handleLogout} className="text-red-500 hover:text-red-600 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer" disabled={isLoggingOut}>
+                                    {isLoggingOut ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                    )}
                                     <span>Log out</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>

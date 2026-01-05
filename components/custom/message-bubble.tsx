@@ -28,6 +28,12 @@ export function MessageBubble({ message, onEdit, onRegenerate, user }: MessageBu
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
 
+    // Determine if query is non-legal based on Case Law Researcher's opinion
+    const caseLawOpinion = message.council_opinions?.find(op => op.role === "Case Law Researcher");
+    const isNonLegal = caseLawOpinion?.opinion?.includes("[[NON-LEGAL]]");
+    // Show references only if NOT streaming AND NOT non-legal
+    const showReferences = !message.isStreaming && !isNonLegal && message.chunks && message.chunks.length > 0;
+
     const [isCopied, setIsCopied] = useState(false);
 
     const handleCopy = async () => {
@@ -143,7 +149,7 @@ export function MessageBubble({ message, onEdit, onRegenerate, user }: MessageBu
                         "mt-2 flex items-center gap-2 transition-opacity duration-200",
                         isAi ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                     )}>
-                        {isAi && message.chunks && <RetrievedChunks chunks={message.chunks} />}
+                        {isAi && showReferences && <RetrievedChunks chunks={message.chunks!} />}
 
                         <div className="flex items-center gap-2">
                             <Button

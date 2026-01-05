@@ -57,7 +57,7 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
                 </div>
             </div>
             <p className="mt-2 text-center text-xs text-muted-foreground/60">
-                 AI Lawyer can make mistakes. Consider checking important information.
+                 SamVidhaan can make mistakes. Consider checking important information.
             </p>
         </div>
     );

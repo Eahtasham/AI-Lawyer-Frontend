@@ -6,7 +6,7 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useState } from 'react'
-import { Github, Mail } from 'lucide-react'
+import { Github, Mail, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -99,9 +99,13 @@ export default function LoginPage() {
                     disabled={loading}
                     className="w-full"
                 >
-                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                    </svg>
+                    {loading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                            <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                        </svg>
+                    )}
                     Google
                 </Button>
                 <Button 
@@ -110,7 +114,11 @@ export default function LoginPage() {
                     disabled={loading}
                     className="w-full"
                 >
-                    <Github className="mr-2 h-4 w-4" />
+                    {loading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Github className="mr-2 h-4 w-4" />
+                    )}
                     GitHub
                 </Button>
             </div>
@@ -140,8 +148,11 @@ export default function LoginPage() {
                     />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
-                    <Mail className="mr-2 h-4 w-4" />
+                    {loading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Mail className="mr-2 h-4 w-4" />
+                    )}
                     Sign in with Email
                 </Button>
             </form>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Plus, MessageSquare, Trash2, Home, LogOut, MoreHorizontal, Pin, PinOff, Pencil, PanelLeftClose, PanelLeftOpen, Settings, User as UserIcon, ChevronsUpDown } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Home, LogOut, MoreHorizontal, Pin, PinOff, Pencil, PanelLeftClose, PanelLeftOpen, Settings, User as UserIcon, ChevronsUpDown, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatSession } from "@/types";
 import {
@@ -58,6 +58,7 @@ export function Sidebar({
     const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
     const [sessionToRename, setSessionToRename] = useState<ChatSession | null>(null);
     const [newTitle, setNewTitle] = useState("");
+    const [isRenaming, setIsRenaming] = useState(false);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -74,9 +75,14 @@ export function Sidebar({
     const handleRenameSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (sessionToRename && newTitle.trim()) {
-            await renameSession(sessionToRename.id, newTitle.trim());
-            setIsRenameDialogOpen(false);
-            setSessionToRename(null);
+            setIsRenaming(true);
+            try {
+                await renameSession(sessionToRename.id, newTitle.trim());
+                setIsRenameDialogOpen(false);
+                setSessionToRename(null);
+            } finally {
+                setIsRenaming(false);
+            }
         }
     };
 
@@ -358,10 +364,11 @@ export function Sidebar({
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="ghost" onClick={() => setIsRenameDialogOpen(false)} className="hover:bg-white/10 hover:text-white">
+                            <Button type="button" variant="ghost" onClick={() => setIsRenameDialogOpen(false)} className="hover:bg-white/10 hover:text-white" disabled={isRenaming}>
                                 Cancel
                             </Button>
-                            <Button type="submit" className="bg-white text-black hover:bg-white/90">
+                            <Button type="submit" className="bg-white text-black hover:bg-white/90" disabled={isRenaming}>
+                                {isRenaming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save changes
                             </Button>
                         </DialogFooter>

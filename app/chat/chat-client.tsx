@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Home, Trash2 } from "lucide-react";
+import { Menu, Home, Trash2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useChatStore } from "@/lib/store/chat-store";
 import { createClient } from "@/lib/supabase/client";
@@ -63,6 +63,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     };
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [mounted, setMounted] = useState(false);
     // Initialize token with prop
     const [token, setToken] = useState<string | null>(accessToken);
@@ -143,10 +144,9 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     };
 
     const handleDeleteSession = async (sessionId: string) => {
-        // Optimistic delete
-        actions.deleteSession(sessionId);
+        setIsDeleting(true);
         
-        // If we are authenticated, delete from backend
+        // If we are authenticated, delete from backend first
         if (token) {
             try {
                 await import("@/lib/api").then(mod => mod.deleteConversation(sessionId, token));
@@ -160,10 +160,14 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             }
         }
         
+        // Optimistic delete (or rather, now synchronized)
+        actions.deleteSession(sessionId);
+        
         // If current session was deleted, switch to new chat (handled by store usually, but explicit check good)
         if (currentSessionId === sessionId) {
             handleNewChat();
         }
+        setIsDeleting(false);
     };
 
     const handleLogout = async () => {
@@ -456,10 +460,14 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                                     <AlertDialogFooter>
                                         <AlertDialogCancel className="bg-transparent border-white/10 hover:bg-white/10 hover:text-white text-white">Cancel</AlertDialogCancel>
                                         <AlertDialogAction 
-                                            onClick={() => handleDeleteSession(currentSessionId)}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handleDeleteSession(currentSessionId);
+                                            }}
                                             className="bg-red-500 text-white hover:bg-red-600 border-none"
+                                            disabled={isDeleting}
                                         >
-                                            Delete
+                                            {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Delete"}
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
