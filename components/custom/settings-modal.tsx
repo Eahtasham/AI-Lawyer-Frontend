@@ -18,7 +18,7 @@ interface SettingsModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   user: User | null
-  profile: { username: string; full_name: string; avatar_url: string } | null
+  profile?: { username: string; full_name: string; avatar_url: string } | null
   onProfileUpdate?: () => void
 }
 
