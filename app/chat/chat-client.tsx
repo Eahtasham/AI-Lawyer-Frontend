@@ -344,41 +344,107 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         }
     };
 
-    const handleRegenerate = async () => {
-        if (!currentSessionId || messages.length < 2) return;
+    const handleRegenerate = async (messageId?: string) => {
+        if (!currentSessionId) return;
 
-        const lastMessage = messages[messages.length - 1];
-        if (lastMessage.role !== "ai") return; // Can only regenerate AI response
+        let targetMessageIndex = -1;
+        
+        // If messageId provided, find it. Else default to last message.
+        if (messageId) {
+            targetMessageIndex = messages.findIndex(m => m.id === messageId);
+        } else {
+            targetMessageIndex = messages.length - 1;
+        }
 
-        const newHistory = messages.slice(0, -1);
-        const queryMessage = newHistory[newHistory.length - 1];
+        if (targetMessageIndex === -1) return;
 
+        const targetMessage = messages[targetMessageIndex];
+        if (targetMessage.role !== "ai") return; 
+
+        // We need the preceding user message to be the query
+        const precedingMessageIndex = targetMessageIndex - 1;
+        if (precedingMessageIndex < 0) return;
+        
+        const queryMessage = messages[precedingMessageIndex];
         if (queryMessage.role !== "user") return;
 
-        // Reset to history without last AI
-        actions.updateMessages(currentSessionId, newHistory);
+        // Truncate history: Keep everything up to (and including) the user message
+        const newHistory = messages.slice(0, precedingMessageIndex + 1);
+        
+        // Optimistic update: Update store to truncated history + New Empty AI Message
+        // unique ID for new attempt
+        const newAiMessageId = uuidv4();
+        const initialAiMessage: Message = {
+            id: newAiMessageId,
+            role: "ai",
+            content: "",
+            timestamp: Date.now(),
+            logs: [],
+            council_opinions: [],
+            isStreaming: true,
+        };
+
+        const updatedMessages = [...newHistory, initialAiMessage];
+        actions.updateMessages(currentSessionId, updatedMessages);
         setIsLoading(true);
 
-        try {
-            const response = await fetchChatResponse(
-                { query: queryMessage.content, top_k: 5, conversation_id: currentSessionId },
-                token || undefined
+        // Define updater
+        const updateAiMessage = (updates: Partial<Message>) => {
+            const currentMsgs = useChatStore.getState().sessions.find(s => s.id === currentSessionId)?.messages || [];
+            const newMsgs = currentMsgs.map(msg => 
+                msg.id === newAiMessageId ? { ...msg, ...updates } : msg
             );
+            actions.updateMessages(currentSessionId, newMsgs);
+        };
 
-            const aiMessage: Message = {
-                id: uuidv4(),
-                role: "ai",
-                content: response.answer,
-                chunks: response.chunks,
-                timestamp: Date.now(),
-            };
-            actions.updateMessages(currentSessionId, [...newHistory, aiMessage]);
+        try {
+            await streamChatResponseWithFetch(
+                queryMessage.content,
+                (type, payload) => {
+                     // Fetch refreshing store state inside callback
+                     const currentMsgs = useChatStore.getState().sessions.find(s => s.id === currentSessionId)?.messages || [];
+                     const currentAiMsg = currentMsgs.find(m => m.id === newAiMessageId);
+                     if (!currentAiMsg) return;
 
+                     const newMsg = { ...currentAiMsg };
+
+                     if (type === 'log') {
+                         newMsg.logs = [...(newMsg.logs || []), payload as string];
+                     } else if (type === 'opinion') {
+                         const opinionPayload = payload as { role: string; model: string; opinion: string };
+                         const exists = newMsg.council_opinions?.some(op => op.role === opinionPayload.role);
+                         if (!exists) {
+                             newMsg.council_opinions = [...(newMsg.council_opinions || []), opinionPayload];
+                         }
+                     } else if (type === 'chunks') {
+                         newMsg.chunks = payload as Message['chunks'];
+                     } else if (type === 'data') {
+                         const dataPayload = payload as { answer?: string; error?: string };
+                         if (dataPayload.answer) {
+                             newMsg.content = dataPayload.answer;
+                             newMsg.isStreaming = false;
+                         }
+                         if (dataPayload.error) {
+                             newMsg.content = `Error: ${dataPayload.error}`;
+                             newMsg.isStreaming = false;
+                         }
+                     }
+
+                     const newerMsgs = currentMsgs.map(m => m.id === newAiMessageId ? newMsg : m);
+                     actions.updateMessages(currentSessionId, newerMsgs);
+                },
+                token || undefined,
+                currentSessionId || undefined
+            );
         } catch (error) {
-            console.error("Failed to fetch response:", error);
-            // Error handling
+            console.error("Failed to regenerate response:", error);
+             updateAiMessage({
+                content: "Sorry, I encountered an error while regenerating the response.",
+                isStreaming: false
+            });
         } finally {
             setIsLoading(false);
+            updateAiMessage({ isStreaming: false });
         }
     };
 

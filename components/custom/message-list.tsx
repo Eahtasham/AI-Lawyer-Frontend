@@ -10,7 +10,7 @@ interface MessageListProps {
     messages: Message[];
     isLoading: boolean;
     onEdit: (messageId: string, newContent: string) => void;
-    onRegenerate: () => void;
+    onRegenerate: (messageId?: string) => void;
     user: User | null;
 }
 
@@ -31,7 +31,7 @@ export function MessageList({ messages, isLoading, onEdit, onRegenerate, user }:
                         key={message.id}
                         message={message}
                         onEdit={(newContent) => onEdit(message.id, newContent)}
-                        onRegenerate={index === messages.length - 1 && message.role === "ai" ? onRegenerate : undefined}
+                        onRegenerate={message.role === "ai" ? () => onRegenerate(message.id) : undefined}
                         user={user}
                     />
                 ))}
