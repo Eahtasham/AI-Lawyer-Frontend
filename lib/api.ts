@@ -1,6 +1,6 @@
 import { ChatRequest, ChatResponse } from "@/types";
 
-export async function fetchChatResponse(data: ChatRequest, token?: string): Promise<ChatResponse> {
+export async function fetchChatResponse(data: ChatRequest, token?: string, signal?: AbortSignal): Promise<ChatResponse> {
     console.log("Fetch Chat Token Debug:", token ? "Token present" : "Token MISSING");
     const headers: HeadersInit = {
         "Content-Type": "application/json",
@@ -13,6 +13,7 @@ export async function fetchChatResponse(data: ChatRequest, token?: string): Prom
         method: "POST",
         headers,
         body: JSON.stringify(data),
+        signal,
     });
 
     if (!response.ok) {
@@ -27,7 +28,8 @@ export async function streamChatResponseWithFetch(
     query: string,
     onMessage: (type: string, payload: unknown) => void,
     token?: string,
-    conversationId?: string
+    conversationId?: string,
+    signal?: AbortSignal
 ): Promise<void> {
     let url = `/api/stream?query=${encodeURIComponent(query)}`;
     if (conversationId) {
@@ -44,6 +46,7 @@ export async function streamChatResponseWithFetch(
     const response = await fetch(url, {
         method: "GET",
         headers,
+        signal,
     });
 
     if (!response.ok) {

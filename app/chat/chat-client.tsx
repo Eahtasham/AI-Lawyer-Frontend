@@ -76,7 +76,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         syncSessions
     };
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [generatingSessionId, setGeneratingSessionId] = useState<string | null>(null);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -87,6 +87,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const [user, setUser] = useState<User | null>(null);
 
     const [profile, setProfile] = useState<{ username: string; full_name: string; avatar_url: string } | null>(null);
+    const [abortController, setAbortController] = useState<AbortController | null>(null);
 
     // Get current session and messages
     const currentSession = sessions.find(s => s.id === currentSessionId);
@@ -241,9 +242,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         const updatedMessages = [...messages, userMessage, initialAiMessage];
         actions.updateMessages(currentSessionId, updatedMessages);
 
-        setIsLoading(true);
+        setGeneratingSessionId(currentSessionId);
 
-        // Helper to update specific message in the list
         const updateAiMessage = (updates: Partial<Message>) => {
             const currentMsgs = useChatStore.getState().sessions.find(s => s.id === currentSessionId)?.messages || [];
             const newMsgs = currentMsgs.map(msg =>
@@ -251,6 +251,9 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             );
             actions.updateMessages(currentSessionId, newMsgs);
         };
+
+        const controller = new AbortController();
+        setAbortController(controller);
 
         try {
             // Note: We might need to pass `conversation_id` if we want Backend to link it immediately.
@@ -298,17 +301,24 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                     actions.updateMessages(currentSessionId, newerMsgs);
                 },
                 token || undefined,
-                currentSessionId || undefined
+                currentSessionId || undefined,
+                controller.signal
             );
 
-        } catch (error) {
-            console.error("Failed to fetch response:", error);
-            updateAiMessage({
-                content: "Sorry, I encountered an error while processing your request.",
-                isStreaming: false
-            });
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+                 console.log("Generation stopped by user");
+                 updateAiMessage({ isStreaming: false });
+            } else {
+                console.error("Failed to fetch response:", error);
+                updateAiMessage({
+                    content: "Sorry, I encountered an error while processing your request.",
+                    isStreaming: false
+                });
+            }
         } finally {
-            setIsLoading(false);
+            setGeneratingSessionId(null);
+            setAbortController(null);
             updateAiMessage({ isStreaming: false });
 
             // Generate title if new chat
@@ -350,12 +360,16 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
 
         // Optimistic update
         actions.updateMessages(currentSessionId, [...truncatedHistory, updatedMessage]);
-        setIsLoading(true);
+        setGeneratingSessionId(currentSessionId);
+
+        const controller = new AbortController();
+        setAbortController(controller);
 
         try {
             const response = await fetchChatResponse(
                 { query: newContent, top_k: 5, conversation_id: currentSessionId },
-                token || undefined
+                token || undefined,
+                controller.signal
             );
 
             const finalAiMessage: Message = {
@@ -368,17 +382,32 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
 
             actions.updateMessages(currentSessionId, [...truncatedHistory, updatedMessage, finalAiMessage]);
 
-        } catch (error) {
-            console.error("Failed to fetch response:", error);
-            const errorMessage: Message = {
-                id: uuidv4(),
-                role: "ai",
-                content: "Sorry, I encountered an error while processing your request. Please try again.",
-                timestamp: Date.now(),
-            };
-            actions.updateMessages(currentSessionId, [...truncatedHistory, updatedMessage, errorMessage]);
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+                 console.log("Edit generation stopped by user");
+                 // We might want to remove the loading indicator but maybe keep the user message?
+                 // Current logic leaves the "AI typing..." placeholder or whatever.
+                 // Actually, we haven't added the AI message to the store yet in the happy path until response comes (wait, line 380).
+                 // But wait, line 369/380 updates with finalAiMessage.
+                 // Unlike handleSend, handleEdit does NOT put a temporary AI message in the store BEFORE fetching?
+                 // Let's check lines 349-353.
+                 // It updates store with truncatedHistory + updatedMessage.
+                 // It does NOT add a placeholder AI message.
+                 // So if we stop, there's no "half-finished" AI message to fix. 
+                 // We just stop loading.
+            } else {
+                console.error("Failed to fetch response:", error);
+                const errorMessage: Message = {
+                    id: uuidv4(),
+                    role: "ai",
+                    content: "Sorry, I encountered an error while processing your request. Please try again.",
+                    timestamp: Date.now(),
+                };
+                actions.updateMessages(currentSessionId, [...truncatedHistory, updatedMessage, errorMessage]);
+            }
         } finally {
-            setIsLoading(false);
+            setGeneratingSessionId(null);
+            setAbortController(null);
         }
     };
 
@@ -424,7 +453,10 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
 
         const updatedMessages = [...newHistory, initialAiMessage];
         actions.updateMessages(currentSessionId, updatedMessages);
-        setIsLoading(true);
+        setGeneratingSessionId(currentSessionId);
+
+        const controller = new AbortController();
+        setAbortController(controller);
 
         // Define updater
         const updateAiMessage = (updates: Partial<Message>) => {
@@ -472,17 +504,48 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                      actions.updateMessages(currentSessionId, newerMsgs);
                 },
                 token || undefined,
-                currentSessionId || undefined
+                currentSessionId || undefined,
+                controller.signal
             );
-        } catch (error) {
-            console.error("Failed to regenerate response:", error);
-             updateAiMessage({
-                content: "Sorry, I encountered an error while regenerating the response.",
-                isStreaming: false
-            });
+        } catch (error: any) {
+             if (error.name === 'AbortError') {
+                 console.log("Regeneration stopped by user");
+                 updateAiMessage({ isStreaming: false });
+            } else {
+                console.error("Failed to regenerate response:", error);
+                updateAiMessage({
+                    content: "Sorry, I encountered an error while regenerating the response.",
+                    isStreaming: false
+                });
+            }
         } finally {
-            setIsLoading(false);
+            setGeneratingSessionId(null);
+            setAbortController(null);
             updateAiMessage({ isStreaming: false });
+        }
+    };
+
+    const handleStop = () => {
+        if (abortController) {
+            abortController.abort();
+            setAbortController(null);
+            // Don't set state null here, logic flows to finally block of the async operation?
+            // Actually abort() triggers exception in fetch(), which goes to catch -> finally.
+            // But we should might as well ensure UI update just in case.
+            // Actually, waiting for finally is safer to avoid race condition.
+            // But to be responsive, we can set it. 
+            // However, the catch block sets isStreaming false.
+            setGeneratingSessionId(null);
+            
+            // Locate streaming message and mark stopped
+            if (currentSessionId) {
+                 const currentMsgs = useChatStore.getState().sessions.find(s => s.id === currentSessionId)?.messages || [];
+                 const streamingMsg = currentMsgs.find(m => m.isStreaming);
+                 if (streamingMsg) {
+                      const newMsgs = currentMsgs.map(m => m.id === streamingMsg.id ? { ...m, isStreaming: false } : m);
+                      actions.updateMessages(currentSessionId, newMsgs);
+                 }
+            }
         }
     };
 
@@ -627,7 +690,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                     ) : (
                         <MessageList
                             messages={messages}
-                            isLoading={isLoading}
+                            isLoading={generatingSessionId === currentSessionId}
                             onEdit={handleEdit}
                             onRegenerate={handleRegenerate}
                             user={user}
@@ -635,7 +698,14 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                     )}
                 </div>
                 <div className="w-full max-w-3xl mx-auto z-10 px-4 mb-2">
-                    <ChatInput onSend={handleSend} isLoading={isLoading} />
+                </div>
+                <div className="w-full max-w-3xl mx-auto z-10 px-4 mb-2">
+                    <ChatInput 
+                        onSend={handleSend} 
+                        isLoading={generatingSessionId === currentSessionId} 
+                        disabled={generatingSessionId !== null}
+                        onStop={handleStop} 
+                    />
                 </div>
             </main>
             <SettingsModal 
