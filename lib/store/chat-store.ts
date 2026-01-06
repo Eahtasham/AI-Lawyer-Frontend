@@ -51,27 +51,11 @@ export const useChatStore = create<ChatState>()(
             })),
 
             deleteSession: async (id: string) => {
-                // Optimistic update
+                // Only update local state - API call is handled by handleDeleteSession in chat-client.tsx
                 set((state) => ({
                     sessions: state.sessions.filter((s) => s.id !== id),
                     currentSessionId: state.currentSessionId === id ? null : state.currentSessionId
                 }))
-
-                try {
-                    const supabase = createClient()
-                    const { data: { session } } = await supabase.auth.getSession()
-                    if (session) {
-                        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/chat/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Authorization': `Bearer ${session.access_token}`
-                            }
-                        })
-                    }
-                } catch (error) {
-                    console.error('Failed to delete session:', error)
-                    // Optionally revert optimistic update here
-                }
             },
 
             renameSession: async (id: string, newTitle: string) => {
