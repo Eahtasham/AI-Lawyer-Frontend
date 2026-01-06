@@ -18,32 +18,50 @@ interface SettingsModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   user: User | null
+  profile: { username: string; full_name: string; avatar_url: string } | null
+  onProfileUpdate?: () => void
 }
 
-export function SettingsModal({ open, onOpenChange, user }: SettingsModalProps) {
+export function SettingsModal({ open, onOpenChange, user, profile, onProfileUpdate }: SettingsModalProps) {
   const { setTheme, theme } = useTheme()
   const [displayName, setDisplayName] = useState('')
+  const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
     if (user) {
-        // Try to get display name from metadata, fallback to email username
-        const name = user.user_metadata?.full_name || user.email?.split('@')[0] || ''
+        const name = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || ''
         setDisplayName(name)
+        setUsername(profile?.username || user.email?.split('@')[0] || '')
     }
-  }, [user])
+  }, [user, profile])
 
   const handleUpdateProfile = async () => {
     setLoading(true)
     try {
-        const { error } = await supabase.auth.updateUser({
+        // Update auth metadata
+        const { error: authError } = await supabase.auth.updateUser({
             data: { full_name: displayName }
         })
-        if (error) throw error
-        // Optionally show toast success
+        if (authError) throw authError
+
+        // Update public profile (username)
+        if (user && username) {
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update({ 
+                    full_name: displayName,
+                    username: username
+                })
+                .eq('id', user.id)
+            
+            if (profileError) throw profileError
+        }
+
         onOpenChange(false)
+        if (onProfileUpdate) onProfileUpdate();
     } catch (error) {
         console.error('Error updating profile:', error)
     } finally {
@@ -99,18 +117,86 @@ export function SettingsModal({ open, onOpenChange, user }: SettingsModalProps) 
                 <div className="flex-1 p-4 md:p-6 overflow-y-auto">
                      <TabsContent value="general" className="mt-0 space-y-6">
                         <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-16 w-16">
-                                    <AvatarImage src={user?.user_metadata?.avatar_url} />
-                                    <AvatarFallback>{displayName?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="font-medium text-lg">{user?.email}</p>
-                                    <p className="text-sm text-muted-foreground">User ID: {user?.id?.slice(0, 8)}...</p>
+                            <div className="flex flex-col items-center gap-6 mb-6">
+                                <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
+                                    <Avatar className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-background shadow-xl group-hover:border-primary transition-all duration-300">
+                                        <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url} className="object-cover" />
+                                        <AvatarFallback className="text-2xl">{displayName?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                                    </Avatar>
+                                    {/* Edit Badge */}
+                                    <div className="absolute bottom-1 right-1 bg-primary text-primary-foreground p-2 rounded-full shadow-lg hover:bg-primary/90 transition-colors border-2 border-background">
+                                         {/* Assuming Camera is imported, if not use Settings or similar */}
+                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-camera"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                                    </div>
+                                    <Input 
+                                        id="avatar-upload" 
+                                        type="file" 
+                                        accept="image/*" 
+                                        className="hidden" 
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setLoading(true);
+                                                try {
+                                                    const fileExt = file.name.split('.').pop();
+                                                    const fileName = `${user?.id}-${Math.random()}.${fileExt}`;
+                                                    const filePath = `${fileName}`;
+
+                                                    const { error: uploadError } = await supabase.storage
+                                                        .from('avatars')
+                                                        .upload(filePath, file);
+
+                                                    if (uploadError) {
+                                                        throw uploadError;
+                                                    }
+
+                                                    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+                                                    
+                                                    // Update Auth Metadata
+                                                    const { error: updateError } = await supabase.auth.updateUser({
+                                                        data: { avatar_url: data.publicUrl }
+                                                    });
+                                                    
+                                                    if (updateError) throw updateError;
+
+                                                    // Update Profiles Table (CRITICAL FIX)
+                                                    if (user) {
+                                                        const { error: profileUpdateError } = await supabase
+                                                            .from('profiles')
+                                                            .update({ avatar_url: data.publicUrl })
+                                                            .eq('id', user.id);
+
+                                                        if (profileUpdateError) {
+                                                            console.error("Failed to update profile table:", profileUpdateError);
+                                                        }
+                                                    }
+                                                    
+                                                    if (onProfileUpdate) onProfileUpdate();
+                                                } catch (error: any) {
+                                                    console.error("Error uploading avatar:", error);
+                                                    alert("Failed to upload image.");
+                                                } finally {
+                                                    setLoading(false);
+                                                }
+                                            }
+                                        }}
+                                    />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="name">Display Name</Label>
+                                <Label htmlFor="username">Username</Label>
+                                <Input 
+                                    id="username" 
+                                    value={username} 
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    placeholder="username"
+                                />
+                                <p className="text-[0.8rem] text-muted-foreground">
+                                    This is your public display name. It can be your real name or a pseudonym.
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Full Name</Label>
                                 <Input 
                                     id="name" 
                                     value={displayName} 

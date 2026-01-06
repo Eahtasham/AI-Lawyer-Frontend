@@ -9,12 +9,12 @@ import { useState } from 'react'
 import { Github, Mail, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false)
+  const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   
   const handleGoogleLogin = async () => {
-    setLoading(true)
+    setLoadingProvider('google')
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -23,13 +23,13 @@ export default function LoginPage() {
       },
     })
     if (error) {
-        setLoading(false)
+        setLoadingProvider(null)
         console.error("Google Login failed:", error.message)
     }
   }
 
   const handleGithubLogin = async () => {
-    setLoading(true)
+    setLoadingProvider('github')
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
@@ -38,7 +38,7 @@ export default function LoginPage() {
       },
     })
     if (error) {
-        setLoading(false)
+        setLoadingProvider(null)
         console.error("Github Login failed:", error.message)
     }
   }
@@ -47,7 +47,7 @@ export default function LoginPage() {
     e.preventDefault()
     if (!email) return
 
-    setLoading(true)
+    setLoadingProvider('email')
     setMessage(null)
     const supabase = createClient()
     
@@ -58,7 +58,7 @@ export default function LoginPage() {
       },
     })
 
-    setLoading(false)
+    setLoadingProvider(null)
 
     if (error) {
       setMessage({ type: 'error', text: error.message })
@@ -92,34 +92,34 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-3">
                 <Button 
                     variant="outline" 
                     onClick={handleGoogleLogin}
-                    disabled={loading}
-                    className="w-full"
+                    disabled={loadingProvider !== null}
+                    className="w-full h-11"
                 >
-                    {loading ? (
+                    {loadingProvider === 'google' ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                         <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
                             <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
                         </svg>
                     )}
-                    Google
+                    Continue with Google
                 </Button>
                 <Button 
                     variant="outline" 
                     onClick={handleGithubLogin}
-                    disabled={loading}
-                    className="w-full"
+                    disabled={loadingProvider !== null}
+                    className="w-full h-11"
                 >
-                    {loading ? (
+                    {loadingProvider === 'github' ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                         <Github className="mr-2 h-4 w-4" />
                     )}
-                    GitHub
+                    Continue with GitHub
                 </Button>
             </div>
             
@@ -140,15 +140,15 @@ export default function LoginPage() {
                     <Input 
                         id="email" 
                         type="email" 
-                        placeholder="name@example.com" 
+                        placeholder="ddc@samvidhaan.live" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        disabled={loading}
+                        disabled={loadingProvider !== null}
                     />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? (
+                <Button type="submit" className="w-full" disabled={loadingProvider !== null}>
+                    {loadingProvider === 'email' ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                         <Mail className="mr-2 h-4 w-4" />

@@ -199,6 +199,20 @@ export const useChatStore = create<ChatState>()(
                 }
             }))
             
+            
+            // Function to check if a session is purely local (not yet persisted or just created)
+            const currentSessionId = get().currentSessionId;
+            if (currentSessionId) {
+                const isPresent = mergedSessions.some(s => s.id === currentSessionId);
+                if (!isPresent) {
+                    const localSession = sessionList.find(s => s.id === currentSessionId);
+                    if (localSession) {
+                        // Add it to the top/start or merge it in
+                        mergedSessions.unshift({ ...localSession, isPinned: localSession.isPinned ?? false });
+                    }
+                }
+            }
+
             set({ sessions: mergedSessions })
         }
       }

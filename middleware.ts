@@ -50,8 +50,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
   
-  // If user is logged in, and tries to visit login page, redirect to chat
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
+  // If user is logged in, and tries to visit login page OR home page, redirect to chat
+  if (user && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname === '/')) {
       const url = request.nextUrl.clone()
       url.pathname = '/chat'
       return NextResponse.redirect(url)

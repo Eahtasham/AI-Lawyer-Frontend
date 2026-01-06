@@ -38,12 +38,11 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a legal question..."
                     className="min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent p-1 focus:ring-0 focus-visible:ring-0 shadow-none text-base"
-                    disabled={isLoading}
                     rows={1}
                 />
                 <div className="flex justify-between items-center mt-1">
                     <span className="text-[10px] text-muted-foreground ml-1">
-                        AI Lawyer
+                         SamVidhaan
                     </span>
                     <Button
                         size="icon"

@@ -70,34 +70,49 @@ export async function streamChatResponseWithFetch(
             buffer = lines.pop() || "";
 
             for (const line of lines) {
-                if (!line.trim()) continue;
+                const trimmedLine = line.trim();
+                if (!trimmedLine) continue;
 
-                if (line.startsWith("log:")) {
-                    onMessage("log", line.slice(4).trim());
-                } else if (line.startsWith("chunks:")) {
+                if (trimmedLine.startsWith("log:")) {
+                    onMessage("log", trimmedLine.slice(4).trim());
+                } else if (trimmedLine.startsWith("chunks:")) {
                     try {
-                        const data = JSON.parse(line.slice(7));
+                        const jsonStr = trimmedLine.slice(7);
+                        const data = JSON.parse(jsonStr);
                         onMessage("chunks", data);
                     } catch (e) {
-                        console.error("Failed to parse chunks", e);
+                        console.error("Failed to parse chunks. Raw:", trimmedLine, e);
                     }
-                } else if (line.startsWith("opinion:")) {
+                } else if (trimmedLine.startsWith("opinion:")) {
                     try {
-                        const data = JSON.parse(line.slice(8));
+                        const jsonStr = trimmedLine.slice(8);
+                        const data = JSON.parse(jsonStr);
                         onMessage("opinion", data);
                     } catch (e) {
-                        console.error("Failed to parse opinion", e);
+                        console.error("Failed to parse opinion. Raw:", trimmedLine, e);
                     }
-                } else if (line.startsWith("data:")) {
+                } else if (trimmedLine.startsWith("data:")) {
                     try {
-                        const data = JSON.parse(line.slice(5));
+                        const jsonStr = trimmedLine.slice(5);
+                        const data = JSON.parse(jsonStr);
                         onMessage("data", data);
                     } catch (e) {
-                        console.error("Failed to parse data", e);
+                        console.error("Failed to parse data. Raw:", trimmedLine, e);
                     }
                 }
             }
         }
+        
+        // Process any remaining buffer
+        if (buffer.trim()) {
+             const trimmedLine = buffer.trim();
+             if (trimmedLine.startsWith("data:")) {
+                 try {
+                     onMessage("data", JSON.parse(trimmedLine.slice(5)));
+                 } catch (e) { console.error("Final buffer parse error:", trimmedLine); }
+             }
+        }
+
     } catch (e) {
         console.error("Stream reading error", e);
         throw e;

@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Home } from "lucide-react";
+import { Menu, Home, MoreHorizontal, Pencil, Trash, Pin, PinOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useChatStore } from "@/lib/store/chat-store";
 import { createClient } from "@/lib/supabase/client";
@@ -22,9 +22,20 @@ import {
     DropdownMenuSeparator,
     DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { Settings, LogOut, User as UserIcon } from "lucide-react";
+import { UserProfileDropdown } from '@/components/custom/user-profile-dropdown';
+import { Settings, LogOut, Loader2, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SettingsModal } from "@/components/custom/settings-modal";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 
 // Add Props interface
@@ -50,6 +61,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const deleteSession = useChatStore((state) => state.deleteSession);
     const clearStore = useChatStore((state) => state.clearStore);
     const syncSessions = useChatStore((state) => state.syncSessions);
+    const renameSession = useChatStore((state) => state.renameSession);
+    const togglePinSession = useChatStore((state) => state.togglePinSession);
 
     // Group for convenience
     const actions = {
@@ -64,11 +77,16 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     };
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+    const [newTitle, setNewTitle] = useState("");
     // Initialize token with prop
     const [token, setToken] = useState<string | null>(accessToken);
     const [user, setUser] = useState<User | null>(null);
+
+    const [profile, setProfile] = useState<{ username: string; full_name: string; avatar_url: string } | null>(null);
 
     // Get current session and messages
     const currentSession = sessions.find(s => s.id === currentSessionId);
@@ -76,10 +94,27 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     // We'll trust the store state or fallback.
     const messages = currentSession?.messages || [];
 
-    const userInitials = user?.email?.substring(0, 2).toUpperCase() || "AI";
-
+    const userInitials = profile?.full_name?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || "AI";
+    
     useEffect(() => {
         setMounted(true);
+    }, []);
+
+    const fetchProfile = async (userId: string) => {
+        const supabase = createClient();
+        const { data } = await supabase
+            .from('profiles')
+            .select('username, full_name, avatar_url')
+            .eq('id', userId)
+            .single();
+        
+        if (data) {
+            setProfile(data);
+        }
+    };
+
+    useEffect(() => {
+        if (!accessToken) return;
 
         // Sync with Supabase
         actions.syncSessions();
@@ -90,15 +125,18 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         // Get initial user
         supabase.auth.getUser().then(({ data: { user } }) => {
             setUser(user);
+            if (user) fetchProfile(user.id);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 setToken(session.access_token);
                 setUser(session.user);
+                fetchProfile(session.user.id);
             } else if (event === 'SIGNED_OUT') {
                 setToken(null);
                 setUser(null);
+                setProfile(null);
                 router.push("/login");
             }
         });
@@ -113,7 +151,6 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         };
     }, [accessToken]);
 
-    // Effect to ensuring a session is selected if list isn't empty but current is null?
     useEffect(() => {
         if (mounted && sessions.length > 0 && !currentSessionId) {
             actions.setCurrentSessionId(sessions[0].id);
@@ -172,6 +209,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     };
 
     const handleLogout = async () => {
+        setIsLoggingOut(true);
         const supabase = createClient();
         await supabase.auth.signOut();
         actions.clearStore();
@@ -459,9 +497,13 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 className="hidden md:flex"
                 sessions={sessions}
                 currentSessionId={currentSessionId}
+                user={user}
+                profile={profile}
                 onNewChat={handleNewChat}
                 onSelectSession={handleSelectSession}
                 onDeleteSession={handleDeleteSession}
+                onLogout={handleLogout}
+                onOpenSettings={() => setIsSettingsOpen(true)}
             />
 
             <main className="flex flex-1 flex-col h-full relative min-w-0">
@@ -469,8 +511,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 <div className="flex items-center justify-between p-4 border-b md:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20">
                     <Sheet>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="-ml-2">
-                                <Menu className="h-6 w-6" />
+                            <Button variant="ghost" className="-ml-2 h-12 w-12 p-0">
+                                <Menu className="h-12 w-12" />
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 w-[280px] border-r border-white/10 bg-black text-white">
@@ -479,50 +521,39 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                                 className="border-r-0 w-full"
                                 sessions={sessions}
                                 currentSessionId={currentSessionId}
+                                user={user}
+                                profile={profile}
                                 onNewChat={() => {
                                     handleNewChat();
                                 }}
                                 onSelectSession={handleSelectSession}
                                 onDeleteSession={handleDeleteSession}
+                                onLogout={handleLogout}
+                                onOpenSettings={() => setIsSettingsOpen(true)}
                             />
                         </SheetContent>
                     </Sheet>
                     <div className="font-semibold text-lg flex items-center gap-2">
                         <Home className="h-5 w-5" />
-                        SamVidhaan AI
+                        SamVidhaan
                     </div>
                     {/* Placeholder for balance */}
                     <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
+                        <UserProfileDropdown
+                            user={user}
+                            profile={profile || null}
+                            onLogout={handleLogout}
+                            onOpenSettings={() => setIsSettingsOpen(true)}
+                            sideOffset={12}
+                            trigger={
                                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                                     <Avatar className="h-10 w-10">
-                                        <AvatarImage src={user?.user_metadata?.avatar_url} />
+                                        <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url} />
                                         <AvatarFallback>{userInitials}</AvatarFallback>
                                     </Avatar>
                                 </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end" sideOffset={12} forceMount>
-                                <DropdownMenuLabel className="font-normal">
-                                    <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                            {user?.email}
-                                        </p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => setIsSettingsOpen(true)} className="cursor-pointer">
-                                    <Settings className="mr-2 h-4 w-4" />
-                                    <span>Settings</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleLogout} className="text-red-500 hover:text-red-600 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer">
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Log out</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                            }
+                        />
                     </div>
                 </div>
 
@@ -537,51 +568,60 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-
-                    </div>
-
-                    <div className="flex items-center gap-2 border-l border-white/10 pl-4 ml-2">
-                        <DropdownMenu>
+                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarImage src={user?.user_metadata?.avatar_url} />
-                                        <AvatarFallback>{userInitials}</AvatarFallback>
-                                    </Avatar>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end" forceMount>
-                                <DropdownMenuLabel className="font-normal">
-                                    <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                            {user?.email}
-                                        </p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => setIsSettingsOpen(true)} className="cursor-pointer">
-                                    <Settings className="mr-2 h-4 w-4" />
-                                    <span>Settings</span>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => {
+                                    setNewTitle(currentSession?.title || "");
+                                    setIsRenameDialogOpen(true);
+                                }}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Rename
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                    if (currentSessionId) togglePinSession(currentSessionId, !currentSession?.isPinned);
+                                }}>
+                                    {currentSession?.isPinned ? (
+                                        <>
+                                            <PinOff className="mr-2 h-4 w-4" />
+                                            Unpin
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Pin className="mr-2 h-4 w-4" />
+                                            Pin
+                                        </>
+                                    )}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleLogout} className="text-red-500 hover:text-red-600 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer">
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Log out</span>
+                                <DropdownMenuItem 
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => {
+                                        if (currentSessionId) handleDeleteSession(currentSessionId);
+                                    }}
+                                >
+                                    <Trash className="mr-2 h-4 w-4" />
+                                    Delete
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
+
+
                 </div>
 
                 <div className="flex-1 overflow-hidden relative flex flex-col">
                     {messages.length === 0 ? (
                         <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
                             <h2 className="text-4xl font-semibold tracking-tight mb-4">
-                                SamVidhaanAI
+                                SamVidhaan
                             </h2>
                             <p className="text-xl text-muted-foreground/80 max-w-md">
-                                Your Personal Supercharged Legal Assistant
+                                Your Personal AI-Supercharged Legal Assistant
                             </p>
                         </div>
                     ) : (
@@ -598,7 +638,62 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                     <ChatInput onSend={handleSend} isLoading={isLoading} />
                 </div>
             </main>
-            <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} user={user} />
+            <SettingsModal 
+                open={isSettingsOpen} 
+                onOpenChange={setIsSettingsOpen} 
+                user={user} 
+                profile={profile} 
+                onProfileUpdate={() => user && fetchProfile(user.id)}
+            />
+            
+            <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Rename Chat</DialogTitle>
+                        <DialogDescription>
+                            Enter a new title for this conversation.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right">
+                                Title
+                            </Label>
+                            <Input
+                                id="name"
+                                value={newTitle}
+                                onChange={(e) => setNewTitle(e.target.value)}
+                                className="col-span-3"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        if (currentSessionId && newTitle.trim()) {
+                                            renameSession(currentSessionId, newTitle.trim());
+                                            setIsRenameDialogOpen(false);
+                                        }
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button type="submit" onClick={() => {
+                             if (currentSessionId && newTitle.trim()) {
+                                renameSession(currentSessionId, newTitle.trim());
+                                setIsRenameDialogOpen(false);
+                            }
+                        }}>Save changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            {isLoggingOut && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                    <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-sm text-muted-foreground">Logging out...</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

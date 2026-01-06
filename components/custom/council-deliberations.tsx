@@ -92,7 +92,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
                         <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-lg">
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-semibold flex items-center gap-2">
-                                    ⚖️ SamVidhaan Council Deliberations
+                                    ⚖️ Council Deliberations
                                 </span>
                                 <Badge variant="secondary" className="text-xs font-normal">
                                     {opinions.length} Opinions
