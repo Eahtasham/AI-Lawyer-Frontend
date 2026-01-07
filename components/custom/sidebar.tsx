@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Plus, MessageSquare, Trash2, Home, MoreHorizontal, Pin, PinOff, Pencil, PanelLeftClose, PanelLeftOpen, Loader2 } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Home, MoreHorizontal, Pin, PinOff, Pencil, PanelLeftClose, PanelLeftOpen, Loader2, X, Scale } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatSession } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
@@ -56,6 +56,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     onLogout: () => void;
     onOpenSettings: () => void;
     profile?: { username: string; full_name: string; avatar_url: string } | null;
+    onCloseMobile?: () => void;
 }
 
 export function Sidebar({
@@ -68,7 +69,8 @@ export function Sidebar({
     onDeleteSession,
     onLogout,
     onOpenSettings,
-    profile
+    profile,
+    onCloseMobile
 }: SidebarProps) {
     const { renameSession, togglePinSession } = useChatStore();
     const touchTimerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -170,8 +172,8 @@ export function Sidebar({
             <>
                 <div
                     className={cn(
-                        "flex flex-col h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out relative",
-                        isCollapsed ? "w-[70px]" : "w-[300px]",
+                        "flex flex-col h-screen bg-zinc-50 dark:bg-zinc-900 border-r border-sidebar-border transition-all duration-300 ease-in-out relative",
+                        isCollapsed ? "w-[70px]" : "w-[260px]",
                         className
                     )}
                 >
@@ -184,10 +186,20 @@ export function Sidebar({
                             <>
                                 <Link href="/" className="flex items-center gap-2 font-semibold text-sidebar-foreground tracking-tight">
                                     <div className="h-9 w-9 rounded-xl bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center">
-                                        <Home className="h-5 w-5" />
+                                        <Scale className="h-5 w-5" />
                                     </div>
-                                    <span>SamVidhaan</span>
+                                    {/* <span>SamVidhaan</span> - User requested removal */}
                                 </Link>
+                                {onCloseMobile && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={onCloseMobile}
+                                        className="h-8 w-8 md:hidden text-muted-foreground hover:text-sidebar-foreground"
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </Button>
+                                )}
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -207,7 +219,7 @@ export function Sidebar({
                                 {/* Home Icon: Visible by default, hidden on hover */}
                                 <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-0">
                                     <div className="h-10 w-10 rounded-xl bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center">
-                                        <Home className="h-5 w-5" />
+                                        <Scale className="h-5 w-5" />
                                     </div>
                                 </div>
 
@@ -294,6 +306,9 @@ export function Sidebar({
                                             ) : (
                                                 <Button
                                                         onClick={() => onSelectSession(session.id)}
+                                                        onTouchStart={() => handleTouchStart(session.id)}
+                                                        onTouchEnd={handleTouchEnd}
+                                                        onTouchMove={handleTouchEnd}
                                                         variant="ghost"
                                                         className={cn(
                                                             "w-full h-auto py-2 px-2 hover:bg-transparent justify-start gap-2 font-normal transition-none",
@@ -318,7 +333,7 @@ export function Sidebar({
                                                 "shrink-0 flex items-center justify-center transition-opacity",
                                                 "md:w-8 w-0 overflow-hidden", // Hidden width on mobile but exists for anchor
                                                 "opacity-0 md:group-hover:opacity-100 focus-within:opacity-100",
-                                                openMenuId === session.id ? "opacity-100 w-8" : "" // Expand width if open (so it anchors correctly?) or just keep w-0? 
+                                                openMenuId === session.id ? "opacity-100 md:w-8" : "" // Expand width ONLY on desktop if open 
                                                 // If we make it w-8 when open, it might shift layout. 
                                                 // Actually, if it's open via Long Press on mobile, we might WANT it to appear?
                                                 // User said "hide/remove ... menu on mobile".

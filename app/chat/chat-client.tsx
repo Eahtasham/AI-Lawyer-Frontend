@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Home, MoreHorizontal, Pencil, Trash, Pin, PinOff } from "lucide-react";
+import { Menu, Home, MoreHorizontal, Pencil, Trash, Pin, PinOff, SquarePen, Scale } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useChatStore } from "@/lib/store/chat-store";
 import { createClient } from "@/lib/supabase/client";
@@ -87,7 +87,21 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const [user, setUser] = useState<User | null>(null);
 
     const [profile, setProfile] = useState<{ username: string; full_name: string; avatar_url: string } | null>(null);
+    const [appVersion, setAppVersion] = useState<string>("");
     const [abortController, setAbortController] = useState<AbortController | null>(null);
+
+    // Auth Check: Redirect if session is invalid on mount (handles Back Button cache)
+    useEffect(() => {
+        const checkSession = async () => {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                // Force hard reload if session is missing to clear any ghost state
+                window.location.replace("/login");
+            }
+        };
+        checkSession();
+    }, []);
 
     // Get current session and messages
     const currentSession = sessions.find(s => s.id === currentSessionId);
@@ -99,6 +113,23 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     
     useEffect(() => {
         setMounted(true);
+        // Fetch App Version
+        fetch('/api/version')
+            .then(res => res.json())
+            .then(data => {
+                if (data.version) {
+                    // Format version: 1.7.2 -> 1.7 (if needed, but user said "like 1.7 (not 1.7.2)")
+                    // If backend gives 1.7.2, we slice it?
+                    // Let's assumbe we want the first two parts if there are 3.
+                    const parts = data.version.split('.');
+                    if (parts.length >= 2) {
+                        setAppVersion(`${parts[0]}.${parts[1]}`);
+                    } else {
+                        setAppVersion(data.version);
+                    }
+                }
+            })
+            .catch(err => console.error("Failed to fetch version", err));
     }, []);
 
     const fetchProfile = async (userId: string) => {
@@ -214,7 +245,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         const supabase = createClient();
         await supabase.auth.signOut();
         actions.clearStore();
-        router.push("/login");
+        // Use replace to prevent back-navigation to chat
+        window.location.replace("/");
     };
 
     const handleSend = async (query: string) => {
@@ -571,14 +603,14 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
 
             <main className="flex flex-1 flex-col h-full relative min-w-0">
                 {/* Mobile Header */}
-                <div className="flex items-center justify-between p-4 border-b md:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20">
+                <div className="flex items-center justify-between px-3 py-3 border-b md:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20 gap-2">
                     <Sheet>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" className="-ml-2 h-12 w-12 p-0">
-                                <Menu className="h-12 w-12" />
+                            <Button variant="ghost" className="-ml-1 h-9 w-9 p-0 text-muted-foreground hover:text-foreground">
+                                <Menu className="h-5 w-5" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 w-[280px] border-r border-white/10 bg-black text-white">
+                        <SheetContent side="left" className="p-0 w-[280px] border-r border-border bg-sidebar text-sidebar-foreground">
                             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                             <Sidebar
                                 className="border-r-0 w-full"
@@ -593,15 +625,80 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                                 onDeleteSession={handleDeleteSession}
                                 onLogout={handleLogout}
                                 onOpenSettings={() => setIsSettingsOpen(true)}
+                                onCloseMobile={() => {}} 
                             />
                         </SheetContent>
                     </Sheet>
-                    <div className="font-semibold text-lg flex items-center gap-2">
-                        <Home className="h-5 w-5" />
-                        SamVidhaan
+                    
+                    <div className="font-semibold text-lg flex items-center gap-1.5 flex-1 min-w-0 -ml-1">
+                        <Scale className="h-5 w-5 shrink-0" />
+                        <span className="truncate flex items-center">
+                            SamVidhaan 
+                            {appVersion && (
+                                <span className="text-[10px] font-medium bg-muted/50 border border-white/5 px-2 py-0.5 rounded-full ml-2 text-muted-foreground/80 tracking-wide">
+                                    v{appVersion}
+                                </span>
+                            )}
+                        </span>
                     </div>
-                    {/* Placeholder for balance */}
-                    <div className="flex items-center gap-2">
+
+                    {/* Actions: New Chat + Options + Profile */}
+                    <div className="flex items-center gap-1">
+                         {messages.length > 0 && (
+                             <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleNewChat}
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            >
+                                <SquarePen className="h-5 w-5" />
+                            </Button>
+                         )}
+
+                        {messages.length > 0 && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                                        <MoreHorizontal className="h-5 w-5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => {
+                                        setNewTitle(currentSession?.title || "");
+                                        setIsRenameDialogOpen(true);
+                                    }}>
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        Rename
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => {
+                                        if (currentSessionId) togglePinSession(currentSessionId, !currentSession?.isPinned);
+                                    }}>
+                                        {currentSession?.isPinned ? (
+                                            <>
+                                                <PinOff className="mr-2 h-4 w-4" />
+                                                Unpin
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Pin className="mr-2 h-4 w-4" />
+                                                Pin
+                                            </>
+                                        )}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem 
+                                        className="text-destructive focus:text-destructive"
+                                        onClick={() => {
+                                            if (currentSessionId) handleDeleteSession(currentSessionId);
+                                        }}
+                                    >
+                                        <Trash className="mr-2 h-4 w-4" />
+                                        Delete
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+
                         <UserProfileDropdown
                             user={user}
                             profile={profile || null}
@@ -609,8 +706,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                             onOpenSettings={() => setIsSettingsOpen(true)}
                             sideOffset={12}
                             trigger={
-                                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                                    <Avatar className="h-10 w-10">
+                                <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-1">
+                                    <Avatar className="h-8 w-8">
                                         <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url} />
                                         <AvatarFallback>{userInitials}</AvatarFallback>
                                     </Avatar>
@@ -621,10 +718,15 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 </div>
 
                 {/* Desktop Header */}
-                <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-white/10 bg-background/95 backdrop-blur z-20 h-16">
+                <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-border bg-background/95 backdrop-blur z-20 h-16">
                     <div className="flex flex-col">
-                        <h2 className="text-lg font-semibold tracking-tight truncate max-w-xl">
-                            {currentSession?.title || "New Chat"}
+                        <h2 className="text-lg font-semibold tracking-tight truncate max-w-xl flex items-center">
+                            SamVidhaan 
+                            {appVersion && (
+                                <span className="text-[10px] font-medium bg-muted/50 border border-white/5 px-2 py-0.5 rounded-full ml-2 text-muted-foreground/80 tracking-wide">
+                                    v{appVersion}
+                                </span>
+                            )}
                         </h2>
                         <p className="text-xs text-muted-foreground">
                             {messages.length} messages
@@ -680,6 +782,9 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 <div className="flex-1 overflow-hidden relative flex flex-col">
                     {messages.length === 0 ? (
                         <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
+                            <div className="bg-muted/30 p-4 rounded-full mb-4">
+                                <Scale className="h-12 w-12 text-foreground/80" />
+                            </div>
                             <h2 className="text-4xl font-semibold tracking-tight mb-4">
                                 SamVidhaan
                             </h2>
@@ -694,12 +799,13 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                             onEdit={handleEdit}
                             onRegenerate={handleRegenerate}
                             user={user}
+                            profile={profile}
                         />
                     )}
                 </div>
                 <div className="w-full max-w-3xl mx-auto z-10 px-4 mb-2">
                 </div>
-                <div className="w-full max-w-3xl mx-auto z-10 px-4 mb-2">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[95%] md:w-[85%] lg:w-full lg:max-w-4xl z-10 px-0">
                     <ChatInput 
                         onSend={handleSend} 
                         isLoading={generatingSessionId === currentSessionId} 

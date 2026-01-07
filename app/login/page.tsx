@@ -1,12 +1,14 @@
 'use client'
 
+
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useState } from 'react'
-import { Github, Mail, Loader2 } from 'lucide-react'
+import { Github, Mail, Loader2, Scale } from 'lucide-react'
 
 export default function LoginPage() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
@@ -71,21 +73,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-900 px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-2">
-            <div className="mx-auto bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-6 h-6 text-primary"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-            </div>
-          <CardTitle className="text-2xl font-bold">Log in or sign up</CardTitle>
+            <Link href="/" className="inline-flex items-center justify-center gap-3 mb-6 hover:opacity-80 transition-opacity">
+                <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center">
+                    <Scale className="w-6 h-6 text-primary" />
+                </div>
+                <span className="text-xl font-bold tracking-tight">SamVidhaan</span>
+            </Link>
+          <CardTitle className="text-2xl font-bold">Log in / Sign up</CardTitle>
           <CardDescription>
             Choose your preferred method to continue
           </CardDescription>

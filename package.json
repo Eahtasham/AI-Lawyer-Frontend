@@ -1,6 +1,6 @@
 {
-  "name": "ai-lawyer-frontend",
-  "version": "1.0.0",
+  "name": "samvidhaan",
+  "version": "1.7.2",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

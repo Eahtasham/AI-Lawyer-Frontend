@@ -6,6 +6,11 @@ export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
+  
+  // Add headers to prevent caching of protected routes
+  supabaseResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  supabaseResponse.headers.set('Pragma', 'no-cache');
+  supabaseResponse.headers.set('Expires', '0');
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

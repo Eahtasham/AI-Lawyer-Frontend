@@ -54,8 +54,9 @@ export function Header() {
         await supabase.auth.signOut();
         clearStore();
         setUser(null);
-        router.push("/login");
-        // No need to set false as we redirect
+        // Use window.location.replace to force a full page reload and clear client-side cache
+        // This prevents the user from clicking "Back" to see the cached chat state
+        window.location.replace("/login");
     };
 
     const userInitials = user?.email?.substring(0, 2).toUpperCase() || "AI";

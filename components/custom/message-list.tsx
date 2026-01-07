@@ -12,9 +12,10 @@ interface MessageListProps {
     onEdit: (messageId: string, newContent: string) => void;
     onRegenerate: (messageId?: string) => void;
     user: User | null;
+    profile?: { username: string; full_name: string; avatar_url: string } | null;
 }
 
-export function MessageList({ messages, isLoading, onEdit, onRegenerate, user }: MessageListProps) {
+export function MessageList({ messages, isLoading, onEdit, onRegenerate, user, profile }: MessageListProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -24,8 +25,8 @@ export function MessageList({ messages, isLoading, onEdit, onRegenerate, user }:
     }, [messages, isLoading]);
 
     return (
-        <div className="flex-1 overflow-y-auto p-4">
-            <div className="mx-auto flex max-w-3xl flex-col gap-0 pb-12">
+        <div className="flex-1 overflow-y-auto w-full">
+            <div className="mx-auto flex w-[95%] md:w-[85%] lg:w-full lg:max-w-4xl flex-col gap-0 pb-40 pt-4">
                 {messages.map((message, index) => (
                     <MessageBubble
                         key={message.id}
@@ -33,6 +34,7 @@ export function MessageList({ messages, isLoading, onEdit, onRegenerate, user }:
                         onEdit={(newContent) => onEdit(message.id, newContent)}
                         onRegenerate={message.role === "ai" ? () => onRegenerate(message.id) : undefined}
                         user={user}
+                        profile={profile}
                     />
                 ))}
                 {isLoading && (
