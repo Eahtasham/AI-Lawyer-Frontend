@@ -31,15 +31,15 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
     };
 
     return (
-        <div className="w-full relative px-4 pb-4">
-            <div className="relative flex flex-col gap-2 rounded-2xl border border-input bg-card p-3 shadow-lg ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+        <div className="w-full relative px-2 pb-4 md:px-0">
+            <div className="relative flex flex-col gap-2 rounded-2xl border border-white/10 bg-background/40 backdrop-blur-lg p-2 shadow-2xl ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-1 focus-within:border-primary/30">
                 <Textarea
                     ref={textareaRef}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a legal question..."
-                    className="min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent p-1 focus:ring-0 focus-visible:ring-0 shadow-none text-base"
+                    className="min-h-[40px] md:min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent p-2 focus:ring-0 focus-visible:ring-0 shadow-none text-base text-foreground placeholder:text-muted-foreground/50"
                     rows={1}
                 />
                 <div className="flex justify-between items-center mt-1">
