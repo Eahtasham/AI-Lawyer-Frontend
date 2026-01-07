@@ -18,7 +18,7 @@ export function Hero() {
                 className="mb-6 flex items-center justify-center space-x-2 rounded-full border bg-background/50 px-4 py-1.5 text-sm font-medium text-muted-foreground backdrop-blur-sm"
             >
                 <Scale className="h-4 w-4" />
-                <span>AI-Powered Legal Assistance</span>
+                <span>SamVidhaan: AI-Powered Legal Assistance</span>
             </motion.div>
 
             <motion.h1
@@ -28,7 +28,7 @@ export function Hero() {
                 className="max-w-4xl text-5xl font-bold tracking-tight text-foreground sm:text-7xl font-montserrat"
             >
                 Your Personal <br />
-                <span className="text-primary">AI Legal Council</span>
+                <span className="text-primary">Legal Advisory System</span>
             </motion.h1>
 
             <motion.p

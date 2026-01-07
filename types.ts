@@ -1,6 +1,7 @@
 export interface ChatRequest {
     query: string;
     top_k: number;
+    conversation_id?: string;
 }
 
 export interface Chunk {
@@ -58,4 +59,5 @@ export interface ChatSession {
     title: string;
     messages: Message[];
     updatedAt: number;
+    isPinned?: boolean;
 }

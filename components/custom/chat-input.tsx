@@ -2,16 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendHorizontal } from "lucide-react";
+import { SendHorizontal, StopCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
     onSend: (message: string) => void;
+    onStop?: () => void;
     isLoading: boolean;
+    disabled?: boolean;
 }
 
-export function ChatInput({ onSend, isLoading }: ChatInputProps) {
+export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProps) {
     const [input, setInput] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -23,7 +25,7 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
     };
 
     const handleSubmit = () => {
-        if (!input.trim() || isLoading) return;
+        if (!input.trim() || isLoading || disabled) return;
         onSend(input);
         setInput("");
     };
@@ -38,26 +40,41 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a legal question..."
                     className="min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent p-1 focus:ring-0 focus-visible:ring-0 shadow-none text-base"
-                    disabled={isLoading}
                     rows={1}
                 />
                 <div className="flex justify-between items-center mt-1">
                     <span className="text-[10px] text-muted-foreground ml-1">
-                        AI Lawyer
+                         SamVidhaan
                     </span>
-                    <Button
-                        size="icon"
-                        onClick={handleSubmit}
-                        disabled={!input.trim() || isLoading}
-                        className={cn("h-8 w-8 rounded-lg transition-all", input.trim() ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}
-                    >
-                        <SendHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Send</span>
-                    </Button>
+                    {isLoading && onStop ? (
+                        <Button
+                            size="icon"
+                            onClick={onStop}
+                            className="h-8 w-8 rounded-lg transition-all bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-500/20"
+                        >
+                            <StopCircle className="h-4 w-4 fill-current" />
+                            <span className="sr-only">Stop</span>
+                        </Button>
+                    ) : (
+                        <Button
+                            size="icon"
+                            onClick={handleSubmit}
+                            disabled={!input.trim() || isLoading || disabled}
+                            className={cn(
+                                "h-8 w-8 rounded-lg transition-all", 
+                                input.trim() && !isLoading && !disabled
+                                    ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90" 
+                                    : "bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
+                            )}
+                        >
+                            <SendHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Send</span>
+                        </Button>
+                    )}
                 </div>
             </div>
             <p className="mt-2 text-center text-xs text-muted-foreground/60">
-                 AI Lawyer can make mistakes. Consider checking important information.
+                 SamVidhaan can make mistakes. Consider checking important information.
             </p>
         </div>
     );

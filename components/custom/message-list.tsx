@@ -4,14 +4,17 @@ import { Message } from "@/types";
 import { MessageBubble } from "./message-bubble";
 import { useEffect, useRef } from "react";
 
+import { User } from "@supabase/supabase-js";
+
 interface MessageListProps {
     messages: Message[];
     isLoading: boolean;
     onEdit: (messageId: string, newContent: string) => void;
-    onRegenerate: () => void;
+    onRegenerate: (messageId?: string) => void;
+    user: User | null;
 }
 
-export function MessageList({ messages, isLoading, onEdit, onRegenerate }: MessageListProps) {
+export function MessageList({ messages, isLoading, onEdit, onRegenerate, user }: MessageListProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -22,13 +25,14 @@ export function MessageList({ messages, isLoading, onEdit, onRegenerate }: Messa
 
     return (
         <div className="flex-1 overflow-y-auto p-4">
-            <div className="mx-auto flex max-w-3xl flex-col gap-6 pb-12">
+            <div className="mx-auto flex max-w-3xl flex-col gap-0 pb-12">
                 {messages.map((message, index) => (
                     <MessageBubble
                         key={message.id}
                         message={message}
                         onEdit={(newContent) => onEdit(message.id, newContent)}
-                        onRegenerate={index === messages.length - 1 && message.role === "ai" ? onRegenerate : undefined}
+                        onRegenerate={message.role === "ai" ? () => onRegenerate(message.id) : undefined}
+                        user={user}
                     />
                 ))}
                 {isLoading && (

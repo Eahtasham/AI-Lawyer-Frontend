@@ -7,6 +7,8 @@ import { CouncilDeliberations } from "@/components/custom/council-deliberations"
 import { motion } from "framer-motion";
 import { Copy, RotateCcw, User, Bot, Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -18,16 +20,27 @@ interface MessageBubbleProps {
     message: Message;
     onEdit?: (newContent: string) => void;
     onRegenerate?: () => void;
+    user?: SupabaseUser | null;
 }
 
-export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubbleProps) {
+export function MessageBubble({ message, onEdit, onRegenerate, user }: MessageBubbleProps) {
     const isAi = message.role === "ai";
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
 
+    // Determine if query is non-legal based on Case Law Researcher's opinion
+    const caseLawOpinion = message.council_opinions?.find(op => op.role === "Case Law Researcher");
+    const isNonLegal = caseLawOpinion?.opinion?.includes("[[NON-LEGAL]]");
+    // Show references only if NOT streaming AND NOT non-legal
+    const showReferences = !message.isStreaming && !isNonLegal && message.chunks && message.chunks.length > 0;
+
+    const [isCopied, setIsCopied] = useState(false);
+
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(message.content);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy text: ', err);
         }
@@ -49,15 +62,21 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="group flex w-full gap-4 p-4 md:gap-6 md:p-6"
+            className="group flex w-full gap-4 px-4 py-2 md:gap-6 md:px-6 md:py-3"
         >
             <div className="flex flex-shrink-0 flex-col relative items-end">
-                <div className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full border shadow-sm",
-                    isAi ? "bg-black text-white dark:bg-white dark:text-black border-transparent" : "bg-white text-black border-gray-200"
-                )}>
-                    {isAi ? <Bot className="h-5 w-5" /> : <User className="h-5 w-5" />}
-                </div>
+                {isAi ? (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border shadow-sm bg-black text-white dark:bg-white dark:text-black border-transparent">
+                        <Bot className="h-5 w-5" />
+                    </div>
+                ) : (
+                    <Avatar className="h-8 w-8 border shadow-sm">
+                        <AvatarImage src={user?.user_metadata?.avatar_url} />
+                         <AvatarFallback className="bg-white text-black border-gray-200">
+                            {user?.email?.substring(0, 2).toUpperCase() || <User className="h-5 w-5" />}
+                        </AvatarFallback>
+                    </Avatar>
+                )}
             </div>
 
             <div className="relative flex-1 overflow-hidden">
@@ -130,7 +149,7 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                         "mt-2 flex items-center gap-2 transition-opacity duration-200",
                         isAi ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                     )}>
-                        {isAi && message.chunks && <RetrievedChunks chunks={message.chunks} />}
+                        {isAi && showReferences && <RetrievedChunks chunks={message.chunks!} />}
 
                         <div className="flex items-center gap-2">
                             <Button
@@ -138,9 +157,9 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                                 size="sm"
                                 className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                 onClick={handleCopy}
-                                title="Copy"
+                                title={isCopied ? "Copied" : "Copy"}
                             >
-                                <Copy className="h-4 w-4" />
+                                {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                             </Button>
 
                             {isAi && onRegenerate && (

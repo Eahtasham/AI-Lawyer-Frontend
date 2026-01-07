@@ -1,12 +1,19 @@
 import { ChatRequest, ChatResponse } from "@/types";
 
-export async function fetchChatResponse(data: ChatRequest): Promise<ChatResponse> {
+export async function fetchChatResponse(data: ChatRequest, token?: string, signal?: AbortSignal): Promise<ChatResponse> {
+    console.log("Fetch Chat Token Debug:", token ? "Token present" : "Token MISSING");
+    const headers: HeadersInit = {
+        "Content-Type": "application/json",
+    };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(data),
+        signal,
     });
 
     if (!response.ok) {
@@ -19,13 +26,27 @@ export async function fetchChatResponse(data: ChatRequest): Promise<ChatResponse
 
 export async function streamChatResponseWithFetch(
     query: string,
-    onMessage: (type: string, payload: unknown) => void
+    onMessage: (type: string, payload: unknown) => void,
+    token?: string,
+    conversationId?: string,
+    signal?: AbortSignal
 ): Promise<void> {
-    const response = await fetch(`/api/stream?query=${encodeURIComponent(query)}`, {
+    let url = `/api/stream?query=${encodeURIComponent(query)}`;
+    if (conversationId) {
+        url += `&conversation_id=${encodeURIComponent(conversationId)}`;
+    }
+    
+    const headers: HeadersInit = {
+        "Content-Type": "application/json",
+    };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers,
+        signal,
     });
 
     if (!response.ok) {
@@ -40,65 +61,76 @@ export async function streamChatResponseWithFetch(
     const decoder = new TextDecoder();
     let buffer = "";
 
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            
+            // Keep the last part in buffer
+            buffer = lines.pop() || "";
 
-        // Keep the last part in buffer if it's incomplete
-        // (If the stream ended, split will produce an empty string at the end if it ended with \n, 
-        // or the last chunk if not. However, usually SSE streams end with double newline or similar. 
-        // Logic: Process all complete lines. If the last segment doesn't end with a newline, it might be incomplete.)
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) continue;
 
-        // Actually, simpler logic:
-        // `split` gives ["line1", "line2", "partial"] or ["line1", "", ""] if ends with \n\n
-        // We'll process all except the last one, and set buffer to the last one.
-
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-            if (!line.trim()) continue;
-
-            if (line.startsWith("log:")) {
-                onMessage("log", line.slice(4).trim());
-            } else if (line.startsWith("chunks:")) {
-                try {
-                    const data = JSON.parse(line.slice(7));
-                    onMessage("chunks", data);
-                } catch (e) {
-                    console.error("Failed to parse chunks", e);
-                }
-            } else if (line.startsWith("opinion:")) {
-                try {
-                    const data = JSON.parse(line.slice(8));
-                    onMessage("opinion", data);
-                } catch (e) {
-                    console.error("Failed to parse opinion", e);
-                }
-            } else if (line.startsWith("data:")) {
-                try {
-                    const data = JSON.parse(line.slice(5));
-                    onMessage("data", data);
-                } catch (e) {
-                    console.error("Failed to parse data", e);
+                if (trimmedLine.startsWith("log:")) {
+                    onMessage("log", trimmedLine.slice(4).trim());
+                } else if (trimmedLine.startsWith("chunks:")) {
+                    try {
+                        const jsonStr = trimmedLine.slice(7);
+                        const data = JSON.parse(jsonStr);
+                        onMessage("chunks", data);
+                    } catch (e) {
+                        console.error("Failed to parse chunks. Raw:", trimmedLine, e);
+                    }
+                } else if (trimmedLine.startsWith("opinion:")) {
+                    try {
+                        const jsonStr = trimmedLine.slice(8);
+                        const data = JSON.parse(jsonStr);
+                        onMessage("opinion", data);
+                    } catch (e) {
+                        console.error("Failed to parse opinion. Raw:", trimmedLine, e);
+                    }
+                } else if (trimmedLine.startsWith("data:")) {
+                    try {
+                        const jsonStr = trimmedLine.slice(5);
+                        const data = JSON.parse(jsonStr);
+                        onMessage("data", data);
+                    } catch (e) {
+                        console.error("Failed to parse data. Raw:", trimmedLine, e);
+                    }
                 }
             }
         }
-    }
-
-    // Process remaining buffer if any (unlikely if backend ends nicely, but good for robustness)
-    if (buffer.trim()) {
-        const line = buffer.trim();
-        if (line.startsWith("log:")) {
-            onMessage("log", line.slice(4).trim());
-        } else if (line.startsWith("chunks:")) {
-            try { onMessage("chunks", JSON.parse(line.slice(7))); } catch { }
-        } else if (line.startsWith("opinion:")) {
-            try { onMessage("opinion", JSON.parse(line.slice(8))); } catch { }
-        } else if (line.startsWith("data:")) {
-            try { onMessage("data", JSON.parse(line.slice(5))); } catch { }
+        
+        // Process any remaining buffer
+        if (buffer.trim()) {
+             const trimmedLine = buffer.trim();
+             if (trimmedLine.startsWith("data:")) {
+                 try {
+                     onMessage("data", JSON.parse(trimmedLine.slice(5)));
+                 } catch (e) { console.error("Final buffer parse error:", trimmedLine); }
+             }
         }
+
+    } catch (e) {
+        console.error("Stream reading error", e);
+        throw e;
+    }
+}
+
+export async function deleteConversation(conversationId: string, token: string): Promise<void> {
+    const response = await fetch(`/api/chat/${conversationId}`, {
+        method: "DELETE",
+        headers: {
+             "Authorization": `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+         throw new Error(`Failed to delete conversation: ${response.statusText}`);
     }
 }
