@@ -803,11 +803,10 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         />
                     )}
                 </div>
-                <div className="w-full max-w-3xl mx-auto z-10 px-4 mb-2">
-                </div>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[95%] md:w-[85%] lg:w-full lg:max-w-4xl z-10 px-0">
+                <div className="w-[95%] md:w-[85%] lg:w-full lg:max-w-4xl mx-auto z-10 px-0 pb-4">
                     <ChatInput 
-                        onSend={handleSend} 
+                        onSend={handleSend}
+                        onNewChat={handleNewChat}
                         isLoading={generatingSessionId === currentSessionId} 
                         disabled={generatingSessionId !== null}
                         onStop={handleStop} 
