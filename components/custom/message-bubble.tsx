@@ -64,32 +64,19 @@ export function MessageBubble({ message, onEdit, onRegenerate, user, profile }: 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-                "group flex w-full px-5 py-4 gap-2",
+                "group flex w-full px-0 py-4 gap-0", // Removed gap
                 isAi ? "flex-row" : "flex-row-reverse"
             )}
         >
-            <div className="hidden md:flex flex-shrink-0 flex-col relative">
-                {isAi ? (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border shadow-sm bg-black text-white dark:bg-white dark:text-black border-transparent">
-                        <Scale className="h-5 w-5" />
-                    </div>
-                ) : (
-                    <Avatar className="h-8 w-8 border shadow-sm">
-                        <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url} />
-                         <AvatarFallback className="bg-white text-black border-gray-200">
-                            {user?.email?.substring(0, 2).toUpperCase() || <User className="h-5 w-5" />}
-                        </AvatarFallback>
-                    </Avatar>
-                )}
-            </div>
+            {/* Removed hidden Avatar div entirely since it is empty for both users and AI now */}
 
             <div className={cn(
                 "flex flex-col min-w-0",
-                isAi ? "items-start flex-1 w-full max-w-full" : "items-end max-w-[90%] mr-8 md:mr-16"
+                isAi ? "items-start flex-1 w-full max-w-full" : "items-end max-w-[90%]" // Removed mr-8 md:mr-16
             )}>
                 <div className={cn(
                     "relative overflow-hidden break-words",
-                    isAi ? "w-full" : "bg-blue-100 dark:bg-[#10a37f] rounded-xl px-3 py-2 text-primary dark:text-white"
+                    isAi ? "w-full pl-0" : "dark:bg-[var(--chat-surface)] bg-gray-300 border border-border/50 rounded-[20px] px-4 py-1 text-primary dark:text-gray-100 max-w-full"
                 )}>
                     {/* Council Deliberations (Shown above the answer) */}
                     {isAi && (
@@ -167,20 +154,20 @@ export function MessageBubble({ message, onEdit, onRegenerate, user, profile }: 
                             </ReactMarkdown>
                         </div>
                     )}
-                    
+
                     {/* References - Keep inside main content flow but logically maybe part of bubble? Yes. */}
-                     {!isEditing && isAi && showReferences && (
+                    {!isEditing && isAi && showReferences && (
                         <div className="mt-4 pt-4 border-t border-dashed border-gray-200 dark:border-gray-800">
-                             <RetrievedChunks chunks={message.chunks!} />
+                            <RetrievedChunks chunks={message.chunks!} />
                         </div>
-                     )}
+                    )}
                 </div>
 
                 {/* Actions - Outside the bubble */}
                 {!isEditing && (
                     <div className={cn(
                         "mt-1 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity px-1",
-                         isAi ? "justify-start" : "justify-end"
+                        isAi ? "justify-start" : "justify-end"
                     )}>
                         <Button
                             variant="ghost"

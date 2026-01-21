@@ -26,7 +26,7 @@ export function MessageList({ messages, isLoading, onEdit, onRegenerate, user, p
 
     return (
         <div className="flex-1 overflow-y-auto w-full">
-            <div className="mx-auto flex w-[95%] md:w-[85%] lg:w-full lg:max-w-4xl flex-col gap-0 pb-40 pt-4">
+            <div className="mx-auto flex w-full max-w-[52rem] flex-col gap-0 pb-10 pt-4 px-4">
                 {messages.map((message, index) => (
                     <MessageBubble
                         key={message.id}

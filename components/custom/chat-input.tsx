@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendHorizontal, StopCircle } from "lucide-react";
-import { useRef, useState } from "react";
+import { SendHorizontal, StopCircle, Plus, Mic, AudioLines } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
@@ -28,29 +28,60 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
         if (!input.trim() || isLoading || disabled) return;
         onSend(input);
         setInput("");
+        // Reset height
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+        }
     };
 
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto'; // Reset to calculate
+            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+        }
+    }, [input]);
+
+
     return (
-        <div className="w-full relative px-2 pb-4 md:px-0">
-            <div className="relative flex flex-col gap-2 rounded-2xl border border-white/10 bg-background/40 backdrop-blur-lg p-2 shadow-2xl ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-1 focus-within:border-primary/30">
+        <div className="w-full relative pb-1">
+            {/* Main Pill Container */}
+            <div className="relative flex items-end gap-2 rounded-[26px] dark:bg-[var(--chat-surface)] border border-white/10 p-2 pl-4 shadow-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 transition-colors">
+
+                {/* Plus Button */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-muted-foreground/70 hover:text-foreground shrink-0 mb-1"
+                >
+                    <Plus className="h-5 w-5 text-foreground" />
+                </Button>
+
+                {/* Textarea */}
                 <Textarea
                     ref={textareaRef}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask a legal question..."
-                    className="min-h-[40px] md:min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent p-2 focus:ring-0 focus-visible:ring-0 shadow-none text-base text-foreground placeholder:text-muted-foreground/50"
+                    placeholder="Ask anything"
+                    className="flex-1 min-h-[24px] max-h-[200px] w-full resize-none border-0 bg-transparent py-2 px-2 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none text-base text-foreground placeholder:text-muted-foreground/50 leading-relaxed"
                     rows={1}
                 />
-                <div className="flex justify-between items-center mt-1">
-                    <span className="text-[10px] text-muted-foreground ml-1">
-                         SamVidhaan
-                    </span>
+
+                {/* Right Actions */}
+                <div className="flex items-center gap-1 mb-1 shrink-0">
+                    {/* TODO: Add Mic/Voice functionality later, visual placeholder or functional if user wants */}
+                    {/* 
+                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground/70 hover:text-foreground">
+                        <Mic className="h-5 w-5" />
+                    </Button>
+                     */}
+
                     {isLoading && onStop ? (
                         <Button
                             size="icon"
                             onClick={onStop}
-                            className="h-8 w-8 rounded-lg transition-all bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-500/20"
+                            className="h-8 w-8 rounded-full bg-foreground text-background hover:bg-foreground/90 transition-all"
                         >
                             <StopCircle className="h-4 w-4 fill-current" />
                             <span className="sr-only">Stop</span>
@@ -61,10 +92,10 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
                             onClick={handleSubmit}
                             disabled={!input.trim() || isLoading || disabled}
                             className={cn(
-                                "h-8 w-8 rounded-lg transition-all", 
+                                "h-8 w-8 rounded-full transition-all",
                                 input.trim() && !isLoading && !disabled
-                                    ? "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90" 
-                                    : "bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
+                                    ? "bg-foreground text-background hover:bg-foreground/90"
+                                    : "bg-muted text-muted-foreground/40 cursor-not-allowed"
                             )}
                         >
                             <SendHorizontal className="h-4 w-4" />
@@ -73,8 +104,8 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
                     )}
                 </div>
             </div>
-            <p className="mt-2 text-center text-xs text-muted-foreground/60">
-                 SamVidhaan can make mistakes. Consider checking important information.
+            <p className="mt-2 text-center text-xs text-muted-foreground/50">
+                Samvidhaan can make mistakes. Check important info.
             </p>
         </div>
     );

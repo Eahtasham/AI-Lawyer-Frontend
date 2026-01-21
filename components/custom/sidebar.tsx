@@ -146,14 +146,14 @@ export function Sidebar({
     const handleDeleteConfirm = async (e: React.MouseEvent) => {
         e.preventDefault();
         if (sessionToDelete) {
-             setIsDeleting(true);
-             try {
+            setIsDeleting(true);
+            try {
                 await onDeleteSession(sessionToDelete);
-             } finally {
+            } finally {
                 setIsDeleting(false);
                 setIsDeleteDialogOpen(false);
                 setSessionToDelete(null);
-             }
+            }
         }
     };
 
@@ -188,7 +188,7 @@ export function Sidebar({
                                     <div className="h-9 w-9 rounded-xl bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center">
                                         <Scale className="h-5 w-5" />
                                     </div>
-                                    {/* <span>SamVidhaan</span> - User requested removal */}
+                                    {/* <span>Samvidhaan</span> - User requested removal */}
                                 </Link>
                                 {onCloseMobile && (
                                     <Button
@@ -206,9 +206,9 @@ export function Sidebar({
                                     onClick={() => setIsCollapsed(true)}
                                     className="hidden md:flex text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent"
                                 >
-                                <div className="flex items-center justify-center text-sidebar-foreground">
-                                    <PanelLeftClose className="h-6 w-6" />
-                                </div>
+                                    <div className="flex items-center justify-center text-sidebar-foreground">
+                                        <PanelLeftClose className="h-6 w-6" />
+                                    </div>
                                 </Button>
                             </>
                         ) : (
@@ -234,7 +234,7 @@ export function Sidebar({
                     {/* New Chat Button */}
                     <div className={cn("p-3", isCollapsed && "p-0 my-2 flex justify-center")}>
                         {isCollapsed ? (
-                             <Tooltip>
+                            <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
                                         onClick={onNewChat}
@@ -279,51 +279,51 @@ export function Sidebar({
                                             {/* Tooltip wrapper only if collapsed */}
                                             {isCollapsed ? (
                                                 <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        onClick={() => onSelectSession(session.id)}
-                                                        onTouchStart={() => handleTouchStart(session.id)}
-                                                        onTouchEnd={handleTouchEnd}
-                                                        onTouchMove={handleTouchEnd}
-                                                        variant="ghost"
-                                                        className={cn(
-                                                            "h-9 w-9 rounded-xl p-0 flex items-center justify-center transition-none",
-                                                            currentSessionId === session.id ? "bg-sidebar-accent text-sidebar-foreground" : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                                                        )}
-                                                    >
-                                                        {session.isPinned && (
-                                                            <Pin className="h-4 w-4 shrink-0 text-amber-500/90" />
-                                                        )}
-                                                        {!session.isPinned && (
-                                                            <MessageSquare className="h-4 w-4 shrink-0 opacity-70" />
-                                                        )}
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent side="right" className="bg-popover border-border text-popover-foreground">
-                                                    {session.title || "New Chat"}
-                                                </TooltipContent>     
-                                            </Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            onClick={() => onSelectSession(session.id)}
+                                                            onTouchStart={() => handleTouchStart(session.id)}
+                                                            onTouchEnd={handleTouchEnd}
+                                                            onTouchMove={handleTouchEnd}
+                                                            variant="ghost"
+                                                            className={cn(
+                                                                "h-9 w-9 rounded-xl p-0 flex items-center justify-center transition-none",
+                                                                currentSessionId === session.id ? "bg-sidebar-accent text-sidebar-foreground" : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                                                            )}
+                                                        >
+                                                            {session.isPinned && (
+                                                                <Pin className="h-4 w-4 shrink-0 text-amber-500/90" />
+                                                            )}
+                                                            {!session.isPinned && (
+                                                                <MessageSquare className="h-4 w-4 shrink-0 opacity-70" />
+                                                            )}
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="right" className="bg-popover border-border text-popover-foreground">
+                                                        {session.title || "New Chat"}
+                                                    </TooltipContent>
+                                                </Tooltip>
                                             ) : (
                                                 <Button
-                                                        onClick={() => onSelectSession(session.id)}
-                                                        onTouchStart={() => handleTouchStart(session.id)}
-                                                        onTouchEnd={handleTouchEnd}
-                                                        onTouchMove={handleTouchEnd}
-                                                        variant="ghost"
-                                                        className={cn(
-                                                            "w-full h-auto py-2 px-2 hover:bg-transparent justify-start gap-2 font-normal transition-none",
-                                                            currentSessionId === session.id ? "text-sidebar-foreground" : "text-muted-foreground group-hover:text-sidebar-foreground"
-                                                        )}
-                                                    >
-                                                        {session.isPinned && (
-                                                            <Pin className="h-3.5 w-3.5 shrink-0 text-amber-500/90" />
-                                                        )}
-                                                        <span className="truncate text-sm">
-                                                            {(session.title || "New Chat").length > 30
-                                                                ? (session.title || "New Chat").slice(0, 18) + "..."
-                                                                : (session.title || "New Chat")}
-                                                        </span>
-                                                    </Button>
+                                                    onClick={() => onSelectSession(session.id)}
+                                                    onTouchStart={() => handleTouchStart(session.id)}
+                                                    onTouchEnd={handleTouchEnd}
+                                                    onTouchMove={handleTouchEnd}
+                                                    variant="ghost"
+                                                    className={cn(
+                                                        "w-full h-auto py-2 px-2 hover:bg-transparent justify-start gap-2 font-normal transition-none",
+                                                        currentSessionId === session.id ? "text-sidebar-foreground" : "text-muted-foreground group-hover:text-sidebar-foreground"
+                                                    )}
+                                                >
+                                                    {session.isPinned && (
+                                                        <Pin className="h-3.5 w-3.5 shrink-0 text-amber-500/90" />
+                                                    )}
+                                                    <span className="truncate text-sm">
+                                                        {(session.title || "New Chat").length > 30
+                                                            ? (session.title || "New Chat").slice(0, 18) + "..."
+                                                            : (session.title || "New Chat")}
+                                                    </span>
+                                                </Button>
                                             )}
                                         </div>
 
@@ -391,7 +391,7 @@ export function Sidebar({
                         </ScrollArea>
                     </div>
 
-                   {/* User Profile - Fixed at Bottom - Only Desktop (hidden md:flex to match parent visibility but actually the parent is hidden on mobile, 
+                    {/* User Profile - Fixed at Bottom - Only Desktop (hidden md:flex to match parent visibility but actually the parent is hidden on mobile, 
                      wait, the parent sidebar is 'hidden md:flex' in desktop mode, but this component is also used in mobile sheet.
                      The user requirement: "only on the top right for mobile devices". 
                      So this section should be hidden when used in the Mobile Sheet?
@@ -403,98 +403,98 @@ export function Sidebar({
                      BUT, user profile WAS at bottom before.
                     */}
                     <div className="border-t border-sidebar-border hidden md:block w-full">
-                <div 
-                    ref={userMenuRef}
-                    className={cn(
-                        "flex flex-col w-full transition-all duration-300 ease-in-out",
-                        isExpanded ? "bg-sidebar-accent/10" : "hover:bg-sidebar-accent/0"
-                    )}
-                >
-                    {isCollapsed ? (
-                         <UserProfileDropdown
-                            user={user}
-                            profile={profile || null}
-                            onLogout={onLogout}
-                            onOpenSettings={onOpenSettings}
-                            side="right"
-                            align="end"
-                            className="bg-sidebar border-sidebar-border text-sidebar-foreground"
-                            trigger={
-                                <button className="flex items-center justify-center w-11 h-11 mx-auto rounded-xl p-1 focus:outline-none transition-colors hover:bg-sidebar-accent outline-none my-3">
-                                    <Avatar className="h-9 w-9 shrink-0">
-                                        <AvatarImage src={profile?.avatar_url} /> // or optionally user?.user_metadata?.avatar_url
-                                        <AvatarFallback className="text-xs rounded-xl">{user?.email?.substring(0, 2).toUpperCase() || "AI"}</AvatarFallback>
-                                    </Avatar>
-                                </button>
-                            }
-                        />
-                    ) : (
-                        <>
-                            <button 
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                className="flex items-center gap-3 w-full p-4 text-left focus:outline-none outline-none"
-                            >
-                                <Avatar className="h-9 w-9 shrink-0">
-                                    <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url} />
-                                    <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || "AI"}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex flex-col items-start truncate min-w-0 flex-1">
-                                    <span className="text-sm font-medium truncate w-full">{profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</span>
-                                    <span className="text-xs text-muted-foreground truncate w-full">@{profile?.username || user?.email?.split('@')[0]}</span>
-                                </div>
-                                <div className="ml-auto shrink-0 text-muted-foreground">
-                                    <svg 
-                                        xmlns="http://www.w3.org/2000/svg" 
-                                        width="16" 
-                                        height="16" 
-                                        viewBox="0 0 24 24" 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        strokeWidth="2" 
-                                        strokeLinecap="round" 
-                                        strokeLinejoin="round"
-                                        className={cn("transition-transform duration-200", isExpanded ? "rotate-180" : "")}
+                        <div
+                            ref={userMenuRef}
+                            className={cn(
+                                "flex flex-col w-full transition-all duration-300 ease-in-out",
+                                isExpanded ? "bg-sidebar-accent/10" : "hover:bg-sidebar-accent/0"
+                            )}
+                        >
+                            {isCollapsed ? (
+                                <UserProfileDropdown
+                                    user={user}
+                                    profile={profile || null}
+                                    onLogout={onLogout}
+                                    onOpenSettings={onOpenSettings}
+                                    side="right"
+                                    align="end"
+                                    className="bg-sidebar border-sidebar-border text-sidebar-foreground"
+                                    trigger={
+                                        <button className="flex items-center justify-center w-11 h-11 mx-auto rounded-xl p-1 focus:outline-none transition-colors hover:bg-sidebar-accent outline-none my-3">
+                                            <Avatar className="h-9 w-9 shrink-0">
+                                                <AvatarImage src={profile?.avatar_url} /> // or optionally user?.user_metadata?.avatar_url
+                                                <AvatarFallback className="text-xs rounded-xl">{user?.email?.substring(0, 2).toUpperCase() || "AI"}</AvatarFallback>
+                                            </Avatar>
+                                        </button>
+                                    }
+                                />
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => setIsExpanded(!isExpanded)}
+                                        className="flex items-center gap-3 w-full p-4 text-left focus:outline-none outline-none"
                                     >
-                                        <path d="m18 15-6-6-6 6"/>
-                                    </svg>
-                                </div>
-                            </button>
-
-                            <AnimatePresence>
-                                {isExpanded && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: "auto", opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                                        className="overflow-hidden"
-                                    >
-                                        <div className="pb-2 space-y-0.5">
-                                            <Button 
-                                                variant="ghost" 
-                                                className="w-full justify-start h-10 px-4 text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 rounded-none pl-12"
-                                                onClick={() => {
-                                                    setIsExpanded(false);
-                                                    onOpenSettings();
-                                                }}
-                                            >
-                                                <Settings className="mr-2 h-4 w-4" />
-                                                Settings
-                                            </Button>
-                                            <Button 
-                                                variant="ghost" 
-                                                className="w-full justify-start h-10 px-4 text-sm font-normal text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-none pl-12"
-                                                onClick={onLogout}
-                                            >
-                                                <LogOut className="mr-2 h-4 w-4" />
-                                                Log out
-                                            </Button>
+                                        <Avatar className="h-9 w-9 shrink-0">
+                                            <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url} />
+                                            <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase() || "AI"}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex flex-col items-start truncate min-w-0 flex-1">
+                                            <span className="text-sm font-medium truncate w-full">{profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"}</span>
+                                            <span className="text-xs text-muted-foreground truncate w-full">@{profile?.username || user?.email?.split('@')[0]}</span>
                                         </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </>
-                    )}
+                                        <div className="ml-auto shrink-0 text-muted-foreground">
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                className={cn("transition-transform duration-200", isExpanded ? "rotate-180" : "")}
+                                            >
+                                                <path d="m18 15-6-6-6 6" />
+                                            </svg>
+                                        </div>
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {isExpanded && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.2, ease: "easeInOut" }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="pb-2 space-y-0.5">
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="w-full justify-start h-10 px-4 text-sm font-normal text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50 rounded-none pl-12"
+                                                        onClick={() => {
+                                                            setIsExpanded(false);
+                                                            onOpenSettings();
+                                                        }}
+                                                    >
+                                                        <Settings className="mr-2 h-4 w-4" />
+                                                        Settings
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="w-full justify-start h-10 px-4 text-sm font-normal text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-none pl-12"
+                                                        onClick={onLogout}
+                                                    >
+                                                        <LogOut className="mr-2 h-4 w-4" />
+                                                        Log out
+                                                    </Button>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </>
+                            )}
                         </div>
                     </div>
 
