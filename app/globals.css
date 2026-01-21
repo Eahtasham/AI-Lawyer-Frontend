@@ -6,7 +6,7 @@
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  --card: #f4f4f5;
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
@@ -44,7 +44,7 @@
   --background: #212121;
   /* Dark grey like ChatGPT */
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
+  --card: #303030;
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);

@@ -70,17 +70,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-900 px-4">
-      <Card className="w-full max-w-sm">
+    <div className="flex min-h-screen items-center justify-center bg-white dark:bg-background px-4 font-sans transition-colors duration-200">
+      <Card className="w-full max-w-sm border-neutral-200 dark:border-neutral-800 shadow-xl">
         <CardHeader className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center justify-center gap-3 mb-6 hover:opacity-80 transition-opacity">
-            <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center">
-              <Scale className="w-6 h-6 text-primary" />
+            <div className="bg-neutral-900 dark:bg-white w-12 h-12 rounded-full flex items-center justify-center">
+              <Scale className="w-6 h-6 text-white dark:text-black" />
             </div>
-            <span className="text-xl font-bold tracking-tight">Samvidhaan</span>
+            <span className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">Samvidhaan</span>
           </Link>
-          <CardTitle className="text-2xl font-bold">Log in / Sign up</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-bold dark:text-white">Log in / Sign up</CardTitle>
+          <CardDescription className="text-neutral-500 dark:text-neutral-400">
             Choose your preferred method to continue
           </CardDescription>
         </CardHeader>
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 variant="outline"
                 onClick={handleGoogleLogin}
                 disabled={loadingProvider !== null}
-                className="w-full h-11"
+                className="w-full h-11 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#383838] hover:bg-neutral-50 dark:hover:bg-[#404040] text-neutral-900 dark:text-white transition-all"
               >
                 {loadingProvider === 'google' ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -106,7 +106,7 @@ export default function LoginPage() {
                 variant="outline"
                 onClick={handleGithubLogin}
                 disabled={loadingProvider !== null}
-                className="w-full h-11"
+                className="w-full h-11 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#383838] hover:bg-neutral-50 dark:hover:bg-[#404040] text-neutral-900 dark:text-white transition-all"
               >
                 {loadingProvider === 'github' ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -119,10 +119,10 @@ export default function LoginPage() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+                <span className="w-full border-t border-neutral-200 dark:border-neutral-700" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
+                <span className="bg-white dark:bg-[#303030] px-2 text-neutral-500 dark:text-neutral-400">
                   Or continue with email
                 </span>
               </div>
@@ -130,7 +130,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
+                <Label htmlFor="email" className="dark:text-neutral-300">Email address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -139,9 +139,10 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loadingProvider !== null}
+                  className="h-11 bg-neutral-50 dark:bg-[#252525] border-neutral-200 dark:border-neutral-700 focus:ring-neutral-900 dark:focus:ring-white text-neutral-900 dark:text-white placeholder:text-neutral-400"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loadingProvider !== null}>
+              <Button type="submit" className="w-full h-11 bg-neutral-900 dark:bg-white text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200" disabled={loadingProvider !== null}>
                 {loadingProvider === 'email' ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
@@ -152,7 +153,7 @@ export default function LoginPage() {
             </form>
 
             {message && (
-              <div className={`p-3 rounded-md text-sm text-center ${message.type === 'error' ? 'bg-destructive/15 text-destructive' : 'bg-green-500/15 text-green-600 dark:text-green-400'}`}>
+              <div className={`p-3 rounded-md text-sm text-center ${message.type === 'error' ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'}`}>
                 {message.text}
               </div>
             )}
