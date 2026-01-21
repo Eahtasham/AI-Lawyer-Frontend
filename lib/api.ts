@@ -35,7 +35,7 @@ export async function streamChatResponseWithFetch(
     if (conversationId) {
         url += `&conversation_id=${encodeURIComponent(conversationId)}`;
     }
-    
+
     const headers: HeadersInit = {
         "Content-Type": "application/json",
     };
@@ -68,7 +68,7 @@ export async function streamChatResponseWithFetch(
 
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
-            
+
             // Keep the last part in buffer
             buffer = lines.pop() || "";
 
@@ -105,15 +105,15 @@ export async function streamChatResponseWithFetch(
                 }
             }
         }
-        
+
         // Process any remaining buffer
         if (buffer.trim()) {
-             const trimmedLine = buffer.trim();
-             if (trimmedLine.startsWith("data:")) {
-                 try {
-                     onMessage("data", JSON.parse(trimmedLine.slice(5)));
-                 } catch (e) { console.error("Final buffer parse error:", trimmedLine); }
-             }
+            const trimmedLine = buffer.trim();
+            if (trimmedLine.startsWith("data:")) {
+                try {
+                    onMessage("data", JSON.parse(trimmedLine.slice(5)));
+                } catch (_e) { console.error("Final buffer parse error:", trimmedLine); }
+            }
         }
 
     } catch (e) {
@@ -126,11 +126,11 @@ export async function deleteConversation(conversationId: string, token: string):
     const response = await fetch(`/api/chat/${conversationId}`, {
         method: "DELETE",
         headers: {
-             "Authorization": `Bearer ${token}`
+            "Authorization": `Bearer ${token}`
         }
     });
 
     if (!response.ok) {
-         throw new Error(`Failed to delete conversation: ${response.statusText}`);
+        throw new Error(`Failed to delete conversation: ${response.statusText}`);
     }
 }

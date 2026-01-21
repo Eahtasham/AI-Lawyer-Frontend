@@ -5,10 +5,8 @@ import { cn } from "@/lib/utils";
 import { RetrievedChunks } from "./retrieved-chunks";
 import { CouncilDeliberations } from "@/components/custom/council-deliberations";
 import { motion } from "framer-motion";
-import { Copy, RotateCcw, User, Bot, Pencil, Check, X, Scale } from "lucide-react";
+import { Copy, RotateCcw, Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User as SupabaseUser } from "@supabase/supabase-js";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -20,11 +18,9 @@ interface MessageBubbleProps {
     message: Message;
     onEdit?: (newContent: string) => void;
     onRegenerate?: () => void;
-    user?: SupabaseUser | null;
-    profile?: { username: string; full_name: string; avatar_url: string } | null;
 }
 
-export function MessageBubble({ message, onEdit, onRegenerate, user, profile }: MessageBubbleProps) {
+export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubbleProps) {
     const isAi = message.role === "ai";
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);

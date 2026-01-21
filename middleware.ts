@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
-  
+
   // Add headers to prevent caching of protected routes
   supabaseResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   supabaseResponse.headers.set('Pragma', 'no-cache');
@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value, options: _options }) =>
             request.cookies.set(name, value)
           )
           supabaseResponse = NextResponse.next({
@@ -54,12 +54,12 @@ export async function middleware(request: NextRequest) {
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
-  
+
   // If user is logged in, and tries to visit login page OR home page, redirect to chat
   if (user && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname === '/')) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/chat'
-      return NextResponse.redirect(url)
+    const url = request.nextUrl.clone()
+    url.pathname = '/chat'
+    return NextResponse.redirect(url)
   }
 
   return supabaseResponse

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Plus, MessageSquare, Trash2, Home, MoreHorizontal, Pin, PinOff, Pencil, PanelLeftClose, PanelLeftOpen, Loader2, X, Scale } from "lucide-react";
+import { Plus, MessageSquare, Trash2, MoreHorizontal, Pin, PinOff, Pencil, PanelLeftClose, PanelLeftOpen, Loader2, X, Scale } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatSession } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,9 +42,9 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { User } from "@supabase/supabase-js";
-import { Settings, LogOut, User as UserIcon } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenuLabel } from "@/components/ui/dropdown-menu";
+
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     sessions: ChatSession[];
@@ -422,7 +422,7 @@ export function Sidebar({
                                     trigger={
                                         <button className="flex items-center justify-center w-11 h-11 mx-auto rounded-xl p-1 focus:outline-none transition-colors hover:bg-sidebar-accent outline-none my-3">
                                             <Avatar className="h-9 w-9 shrink-0">
-                                                <AvatarImage src={profile?.avatar_url} /> // or optionally user?.user_metadata?.avatar_url
+                                                <AvatarImage src={profile?.avatar_url} />
                                                 <AvatarFallback className="text-xs rounded-xl">{user?.email?.substring(0, 2).toUpperCase() || "AI"}</AvatarFallback>
                                             </Avatar>
                                         </button>

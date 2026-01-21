@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Home, MoreHorizontal, Pencil, Trash, Pin, PinOff, SquarePen, Scale } from "lucide-react";
+import { Menu, MoreHorizontal, Pencil, Trash, Pin, PinOff, SquarePen, Scale } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useChatStore } from "@/lib/store/chat-store";
 import { createClient } from "@/lib/supabase/client";
@@ -20,10 +20,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
     DropdownMenuSeparator,
-    DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { UserProfileDropdown } from '@/components/custom/user-profile-dropdown';
-import { Settings, LogOut, Loader2, User as UserIcon } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SettingsModal } from "@/components/custom/settings-modal";
 import {
@@ -222,9 +221,10 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
         if (token) {
             try {
                 await import("@/lib/api").then(mod => mod.deleteConversation(sessionId, token));
-            } catch (error: any) {
+            } catch (error: unknown) {
                 // Ignore "Not Found" errors as it likely means the conversation wasn't persisted yet (e.g. New Chat)
-                if (error.message && (error.message.includes("Not Found") || error.message.includes("404"))) {
+                const err = error as Error;
+                if (err.message && (err.message.includes("Not Found") || err.message.includes("404"))) {
                     console.warn(`Conversation ${sessionId} not found on backend, treated as local delete.`);
                 } else {
                     console.error("Failed to delete conversation from backend:", error);
@@ -338,8 +338,9 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 controller.signal
             );
 
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
+        } catch (error: unknown) {
+            const err = error as Error & { name?: string };
+            if (err.name === 'AbortError') {
                 console.log("Generation stopped by user");
                 updateAiMessage({ isStreaming: false });
             } else {
@@ -378,7 +379,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             timestamp: Date.now(),
         };
 
-        const aiMessage: Message = {
+        const newAiMessage: Message = {
             id: uuidv4(),
             role: "ai",
             content: "",
@@ -415,8 +416,9 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
 
             actions.updateMessages(currentSessionId, [...truncatedHistory, updatedMessage, finalAiMessage]);
 
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
+        } catch (error: unknown) {
+            const err = error as Error & { name?: string };
+            if (err.name === 'AbortError') {
                 console.log("Edit generation stopped by user");
                 // We might want to remove the loading indicator but maybe keep the user message?
                 // Current logic leaves the "AI typing..." placeholder or whatever.
@@ -540,8 +542,9 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 currentSessionId || undefined,
                 controller.signal
             );
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
+        } catch (error: unknown) {
+            const err = error as Error & { name?: string };
+            if (err.name === 'AbortError') {
                 console.log("Regeneration stopped by user");
                 updateAiMessage({ isStreaming: false });
             } else {
@@ -802,8 +805,6 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                             isLoading={generatingSessionId === currentSessionId}
                             onEdit={handleEdit}
                             onRegenerate={handleRegenerate}
-                            user={user}
-                            profile={profile}
                         />
                     )}
                 </div>

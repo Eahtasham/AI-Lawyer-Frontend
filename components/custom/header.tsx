@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/custom/theme-toggle";
-import { Scale, LogOut, Settings, User as UserIcon, Loader2 } from "lucide-react";
+import { Scale, LogOut, Settings, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -26,7 +26,6 @@ export function Header() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const clearStore = useChatStore((state) => state.clearStore);
-    const router = useRouter();
 
     useEffect(() => {
         setMounted(true);

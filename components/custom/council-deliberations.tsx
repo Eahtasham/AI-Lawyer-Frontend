@@ -116,7 +116,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
                                         </div>
                                         <ScrollArea className="h-[250px] w-full rounded-md border bg-muted/30 p-3">
                                             <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-normal">
-                                                <ReactMarkdown 
+                                                <ReactMarkdown
                                                     remarkPlugins={[remarkGfm]}
                                                     components={{
                                                         p: ({ children }) => <p className="mb-2 leading-relaxed last:mb-0 text-sm">{children}</p>,
@@ -127,7 +127,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
                                                         ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5 text-sm">{children}</ol>,
                                                         li: ({ children }) => <li className="leading-relaxed">{children}</li>,
                                                         blockquote: ({ children }) => <blockquote className="border-l-2 border-primary/20 pl-2 py-0.5 my-2 bg-muted/30 italic text-sm">{children}</blockquote>,
-                                                        code: ({ inline, className, children, ...props }: any) => {
+                                                        code: ({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode }) => {
                                                             const match = /language-(\w+)/.exec(className || '');
                                                             return !inline && match ? (
                                                                 <div className="rounded-md overflow-hidden my-2 border bg-zinc-950 text-xs">
