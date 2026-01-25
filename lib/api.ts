@@ -40,8 +40,10 @@ export async function streamChatResponseWithFetch(
     if (contextWindow) {
         url += `&context_window=${contextWindow}`;
     }
-    if (typeof webSearch === 'boolean') {
-        url += `&web_search=${webSearch}`;
+    if (webSearch === true || String(webSearch) === 'true') {
+        url += `&web_search=true`;
+    } else {
+        url += `&web_search=false`;
     }
 
     const headers: HeadersInit = {

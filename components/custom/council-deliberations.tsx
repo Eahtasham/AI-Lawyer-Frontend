@@ -58,7 +58,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
             {logs && logs.length > 0 && (
                 <Accordion type="single" collapsible defaultValue={isStreaming ? "logs" : ""} className="w-full border rounded-lg bg-card/50 shadow-sm">
                     <AccordionItem value="logs" className="border-0">
-                        <AccordionTrigger className="px-4 py-2 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-lg">
+                        <AccordionTrigger className="px-4 py-2 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-lg min-h-[48px]">
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
                                     <Terminal className="h-4 w-4" />
@@ -91,7 +91,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
             {opinions && opinions.length > 0 && (
                 <Accordion type="single" collapsible className="w-full border rounded-lg bg-card/50 shadow-sm">
                     <AccordionItem value="deliberations" className="border-0">
-                        <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-lg">
+                        <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-lg min-h-[48px]">
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-semibold flex items-center gap-2">
                                     ⚖️ Council Deliberations
