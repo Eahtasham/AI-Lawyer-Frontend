@@ -5,10 +5,8 @@ import { cn } from "@/lib/utils";
 import { RetrievedChunks } from "./retrieved-chunks";
 import { CouncilDeliberations } from "@/components/custom/council-deliberations";
 import { motion } from "framer-motion";
-import { Copy, RotateCcw, User, Bot, Pencil, Check, X } from "lucide-react";
+import { Copy, RotateCcw, Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User as SupabaseUser } from "@supabase/supabase-js";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -20,10 +18,9 @@ interface MessageBubbleProps {
     message: Message;
     onEdit?: (newContent: string) => void;
     onRegenerate?: () => void;
-    user?: SupabaseUser | null;
 }
 
-export function MessageBubble({ message, onEdit, onRegenerate, user }: MessageBubbleProps) {
+export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubbleProps) {
     const isAi = message.role === "ai";
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
@@ -62,130 +59,145 @@ export function MessageBubble({ message, onEdit, onRegenerate, user }: MessageBu
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="group flex w-full gap-4 px-4 py-2 md:gap-6 md:px-6 md:py-3"
+            className={cn(
+                "group flex w-full px-0 py-4 gap-0", // Removed gap
+                isAi ? "flex-row" : "flex-row-reverse"
+            )}
         >
-            <div className="flex flex-shrink-0 flex-col relative items-end">
-                {isAi ? (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border shadow-sm bg-black text-white dark:bg-white dark:text-black border-transparent">
-                        <Bot className="h-5 w-5" />
-                    </div>
-                ) : (
-                    <Avatar className="h-8 w-8 border shadow-sm">
-                        <AvatarImage src={user?.user_metadata?.avatar_url} />
-                         <AvatarFallback className="bg-white text-black border-gray-200">
-                            {user?.email?.substring(0, 2).toUpperCase() || <User className="h-5 w-5" />}
-                        </AvatarFallback>
-                    </Avatar>
-                )}
-            </div>
+            {/* Removed hidden Avatar div entirely since it is empty for both users and AI now */}
 
-            <div className="relative flex-1 overflow-hidden">
-                {/* Council Deliberations (Shown above the answer) */}
-                {isAi && (
-                    <CouncilDeliberations
-                        opinions={message.council_opinions || []}
-                        logs={message.logs}
-                        isStreaming={message.isStreaming}
-                    />
-                )}
-
-                {isEditing ? (
-                    <div className="rounded-md border bg-muted p-3">
-                        <Textarea
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            className="min-h-[100px] w-full resize-none border-0 bg-transparent p-0 focus-visible:ring-0"
-                            autoFocus
+            <div className={cn(
+                "flex flex-col min-w-0",
+                isAi ? "items-start flex-1 w-full max-w-full" : "items-end max-w-[90%]" // Removed mr-8 md:mr-16
+            )}>
+                <div className={cn(
+                    "relative overflow-hidden break-words",
+                    isAi ? "w-full pl-0" : "dark:bg-[var(--chat-surface)] bg-gray-300 border border-border/50 rounded-[20px] px-4 py-1 text-primary dark:text-gray-100 max-w-full"
+                )}>
+                    {/* Council Deliberations (Shown above the answer) */}
+                    {isAi && (
+                        <CouncilDeliberations
+                            opinions={message.council_opinions || []}
+                            logs={message.logs}
+                            isStreaming={message.isStreaming}
                         />
-                        <div className="mt-2 flex justify-end gap-2">
-                            <Button size="sm" variant="secondary" onClick={handleCancelEdit}>
-                                <X className="mr-2 h-3 w-3" /> Cancel
-                            </Button>
-                            <Button size="sm" onClick={handleSaveEdit}>
-                                <Check className="mr-2 h-3 w-3" /> Save & Submit
-                            </Button>
+                    )}
+
+                    {isEditing ? (
+                        <div className="rounded-md border bg-muted p-3">
+                            <Textarea
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                className="min-h-[100px] w-full resize-none border-0 bg-transparent p-0 focus-visible:ring-0"
+                                autoFocus
+                            />
+                            <div className="mt-2 flex justify-end gap-2">
+                                <Button size="sm" variant="secondary" onClick={handleCancelEdit}>
+                                    <X className="mr-2 h-3 w-3" /> Cancel
+                                </Button>
+                                <Button size="sm" onClick={handleSaveEdit}>
+                                    <Check className="mr-2 h-3 w-3" /> Save & Submit
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                ) : (
-                    <div className="prose prose-neutral dark:prose-invert max-w-none break-words">
-                        <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={{
+                    ) : (
+                        <div className="prose prose-neutral dark:prose-invert max-w-none break-words">
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
 
-                                code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode }) {
-                                    const match = /language-(\w+)/.exec(className || '');
-                                    return !inline && match ? (
-                                        <div className="rounded-md overflow-hidden my-4 border bg-zinc-950">
-                                            <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-800">
-                                                <span className="text-xs text-zinc-400 font-mono">{match[1]}</span>
-                                                <Button variant="ghost" size="icon" className="h-4 w-4 text-zinc-400 hover:text-zinc-100" onClick={() => navigator.clipboard.writeText(String(children))}>
-                                                    <Copy className="h-3 w-3" />
-                                                </Button>
+                                    p: ({ children }) => <p className="mb-4 leading-7 last:mb-0">{children}</p>,
+                                    h1: ({ children }) => <h1 className="text-2xl font-bold mt-6 mb-3 first:mt-0">{children}</h1>,
+                                    h2: ({ children }) => <h2 className="text-xl font-bold mt-5 mb-3 first:mt-0">{children}</h2>,
+                                    h3: ({ children }) => <h3 className="text-lg font-bold mt-4 mb-2 first:mt-0">{children}</h3>,
+                                    h4: ({ children }) => <h4 className="text-base font-bold mt-4 mb-2">{children}</h4>,
+                                    ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-1">{children}</ul>,
+                                    ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-1">{children}</ol>,
+                                    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                                    blockquote: ({ children }) => <blockquote className="border-l-4 border-primary/20 pl-4 py-1 my-4 bg-muted/30 italic">{children}</blockquote>,
+                                    hr: () => <hr className="my-6 border-gray-200 dark:border-gray-800" />,
+                                    table: ({ children }) => <div className="my-4 w-full overflow-y-auto"><table className="w-full border-collapse border border-border">{children}</table></div>,
+                                    th: ({ children }) => <th className="border border-border bg-muted px-4 py-2 text-left font-bold">{children}</th>,
+                                    td: ({ children }) => <td className="border border-border px-4 py-2">{children}</td>,
+                                    code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode }) {
+                                        const match = /language-(\w+)/.exec(className || '');
+                                        return !inline && match ? (
+                                            <div className="rounded-md overflow-hidden my-6 border bg-zinc-950">
+                                                <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-800">
+                                                    <span className="text-xs text-zinc-400 font-mono">{match[1]}</span>
+                                                    <Button variant="ghost" size="icon" className="h-4 w-4 text-zinc-400 hover:text-zinc-100" onClick={() => navigator.clipboard.writeText(String(children))}>
+                                                        <Copy className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                                <SyntaxHighlighter
+                                                    style={vscDarkPlus}
+                                                    language={match[1]}
+                                                    PreTag="div"
+                                                    customStyle={{ margin: 0, padding: '1rem', background: 'transparent' }}
+                                                >
+                                                    {String(children).replace(/\n$/, '')}
+                                                </SyntaxHighlighter>
                                             </div>
-                                            <SyntaxHighlighter
-                                                style={vscDarkPlus}
-                                                language={match[1]}
-                                                PreTag="div"
-                                                customStyle={{ margin: 0, padding: '1rem', background: 'transparent' }}
-                                            >
-                                                {String(children).replace(/\n$/, '')}
-                                            </SyntaxHighlighter>
-                                        </div>
-                                    ) : (
-                                        <code {...props} className={cn("bg-muted px-1.5 py-0.5 rounded font-mono text-sm", className)}>
-                                            {children}
-                                        </code>
-                                    );
-                                },
-                            }}
-                        >
-                            {message.content}
-                        </ReactMarkdown>
-                    </div>
-                )}
+                                        ) : (
+                                            <code {...props} className={cn("bg-muted px-1.5 py-0.5 rounded font-mono text-sm", className)}>
+                                                {children}
+                                            </code>
+                                        );
+                                    },
+                                }}
+                            >
+                                {message.content}
+                            </ReactMarkdown>
+                        </div>
+                    )}
 
+                    {/* References - Keep inside main content flow but logically maybe part of bubble? Yes. */}
+                    {!isEditing && isAi && showReferences && (
+                        <div className="mt-4 pt-4 border-t border-dashed border-gray-200 dark:border-gray-800">
+                            <RetrievedChunks chunks={message.chunks!} />
+                        </div>
+                    )}
+                </div>
+
+                {/* Actions - Outside the bubble */}
                 {!isEditing && (
                     <div className={cn(
-                        "mt-2 flex items-center gap-2 transition-opacity duration-200",
-                        isAi ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        "mt-1 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity px-1",
+                        isAi ? "justify-start" : "justify-end"
                     )}>
-                        {isAi && showReferences && <RetrievedChunks chunks={message.chunks!} />}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                            onClick={handleCopy}
+                            title={isCopied ? "Copied" : "Copy"}
+                        >
+                            {isCopied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                        </Button>
 
-                        <div className="flex items-center gap-2">
+                        {isAi && onRegenerate && (
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                                onClick={handleCopy}
-                                title={isCopied ? "Copied" : "Copy"}
+                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                                onClick={onRegenerate}
+                                title="Regenerate"
                             >
-                                {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                <RotateCcw className="h-3 w-3" />
                             </Button>
+                        )}
 
-                            {isAi && onRegenerate && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                                    onClick={onRegenerate}
-                                    title="Regenerate"
-                                >
-                                    <RotateCcw className="h-4 w-4" />
-                                </Button>
-                            )}
-
-                            {!isAi && onEdit && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                                    onClick={() => setIsEditing(true)}
-                                    title="Edit"
-                                >
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
-                            )}
-                        </div>
+                        {!isAi && onEdit && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                                onClick={() => setIsEditing(true)}
+                                title="Edit"
+                            >
+                                <Pencil className="h-3 w-3" />
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
