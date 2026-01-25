@@ -33,6 +33,7 @@ export interface CouncilOpinion {
     role: string;
     model: string;
     opinion: string;
+    web_search_enabled?: boolean;
 }
 
 export interface ChatResponse {

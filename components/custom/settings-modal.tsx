@@ -13,6 +13,10 @@ import { User } from '@supabase/supabase-js'
 import { AlertTriangle, Moon, Sun, Laptop, Trash2, User as UserIcon } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useRouter } from 'next/navigation'
+import { Slider } from '@/components/ui/slider'
+import { Switch } from '@/components/ui/switch'
+import { useChatStore } from '@/lib/store/chat-store'
+import { MessageSquare, Globe } from 'lucide-react'
 
 interface SettingsModalProps {
     open: boolean
@@ -29,6 +33,12 @@ export function SettingsModal({ open, onOpenChange, user, profile, onProfileUpda
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const supabase = createClient()
+
+    // Store settings
+    const contextWindowSize = useChatStore((state) => state.contextWindowSize)
+    const setContextWindowSize = useChatStore((state) => state.setContextWindowSize)
+    const webSearchEnabled = useChatStore((state) => state.webSearchEnabled)
+    const setWebSearchEnabled = useChatStore((state) => state.setWebSearchEnabled)
 
     useEffect(() => {
         if (user) {
@@ -109,6 +119,10 @@ export function SettingsModal({ open, onOpenChange, user, profile, onProfileUpda
                                 <TabsTrigger value="danger" className="flex-1 md:w-full justify-center md:justify-start px-3 py-2 data-[state=active]:bg-destructive/10 data-[state=active]:text-destructive text-destructive/80 hover:text-destructive hover:bg-destructive/5 text-xs md:text-sm">
                                     <AlertTriangle className="mr-2 h-4 w-4" />
                                     Danger Zone
+                                </TabsTrigger>
+                                <TabsTrigger value="chat" className="flex-1 md:w-full justify-center md:justify-start px-3 py-2 data-[state=active]:bg-secondary text-xs md:text-sm">
+                                    <MessageSquare className="mr-2 h-4 w-4" />
+                                    Chat Settings
                                 </TabsTrigger>
                             </TabsList>
                         </div>
@@ -278,6 +292,53 @@ export function SettingsModal({ open, onOpenChange, user, profile, onProfileUpda
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="chat" className="mt-0 space-y-6">
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="font-medium mb-4">Chat Memory</h3>
+                                        <div className="space-y-4 rounded-lg border p-4">
+                                            <div className="flex items-center justify-between">
+                                                <Label htmlFor="context-window">Context Window Size</Label>
+                                                <span className="text-sm font-medium bg-secondary px-2 py-1 rounded-md min-w-[3rem] text-center">
+                                                    {contextWindowSize}
+                                                </span>
+                                            </div>
+                                            <Slider
+                                                id="context-window"
+                                                min={1}
+                                                max={100}
+                                                step={1}
+                                                value={[contextWindowSize]}
+                                                onValueChange={(value) => setContextWindowSize(value[0])}
+                                                className="w-full"
+                                            />
+                                            <p className="text-[0.8rem] text-muted-foreground">
+                                                Controls how many previous messages are sent to the AI Council for context. Higher values provide more history but may be slower.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="font-medium mb-4">External Resources</h3>
+                                        <div className="rounded-lg border p-4 flex flex-row items-center justify-between space-y-0">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center">
+                                                    <Globe className="mr-2 h-4 w-4" />
+                                                    <Label className="text-base">Enable Web Search</Label>
+                                                </div>
+                                                <p className="text-[0.8rem] text-muted-foreground">
+                                                    Allow the AI Council to search the internet for real-time information and case law.
+                                                </p>
+                                            </div>
+                                            <Switch
+                                                checked={webSearchEnabled}
+                                                onCheckedChange={setWebSearchEnabled}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </TabsContent>
                         </div>

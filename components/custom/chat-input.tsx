@@ -2,9 +2,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendHorizontal, StopCircle, Plus } from "lucide-react";
+import { SendHorizontal, StopCircle, Paperclip, Mic, Globe, Cpu } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { useChatStore } from "@/lib/store/chat-store";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChevronUp } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 
 interface ChatInputProps {
     onSend: (message: string) => void;
@@ -16,6 +27,11 @@ interface ChatInputProps {
 export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProps) {
     const [input, setInput] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    
+    const contextWindowSize = useChatStore((state) => state.contextWindowSize);
+    const setContextWindowSize = useChatStore((state) => state.setContextWindowSize);
+    const webSearchEnabled = useChatStore((state) => state.webSearchEnabled);
+    const setWebSearchEnabled = useChatStore((state) => state.setWebSearchEnabled);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -48,14 +64,24 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
             {/* Main Pill Container */}
             <div className="relative flex items-end gap-2 rounded-[26px] dark:bg-[var(--chat-surface)] border border-white/10 p-2 pl-4 shadow-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 transition-colors">
 
-                {/* Plus Button */}
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full text-muted-foreground/70 hover:text-foreground shrink-0 mb-1"
-                >
-                    <Plus className="h-5 w-5 text-foreground" />
-                </Button>
+
+
+                {/* Attachment (Paperclip) - Left inside pill */}
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-full text-muted-foreground/70 hover:text-foreground shrink-0 mb-1"
+                            >
+                                <Paperclip className="h-5 w-5" />
+                                <span className="sr-only">Attach file</span>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Attach file</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
 
                 {/* Textarea */}
                 <Textarea
@@ -70,12 +96,23 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-1 mb-1 shrink-0">
-                    {/* TODO: Add Mic/Voice functionality later, visual placeholder or functional if user wants */}
-                    {/* 
-                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground/70 hover:text-foreground">
-                        <Mic className="h-5 w-5" />
-                    </Button>
-                     */}
+                    {/* Voice (Mic) - Disabled - Right inside pill */}
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    disabled
+                                    className="h-8 w-8 rounded-full text-muted-foreground/70 hover:text-foreground transition-colors disabled:opacity-50"
+                                >
+                                    <Mic className="h-5 w-5" />
+                                    <span className="sr-only">Voice Input</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Voice input (Coming soon)</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
 
                     {isLoading && onStop ? (
                         <Button
@@ -102,6 +139,72 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
                             <span className="sr-only">Send</span>
                         </Button>
                     )}
+                </div>
+            </div>
+            
+            {/* Toolbar Row */}
+            <div className="flex items-center justify-between mt-2 px-2">
+                <div className="flex items-center gap-3">
+                    {/* Context Window Slider (Dropdown Menu) */}
+                    <DropdownMenu>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <DropdownMenuTrigger asChild>
+                                        <div className="flex items-center gap-2 group cursor-pointer hover:bg-muted/50 p-1.5 rounded-md transition-colors">
+                                            <Cpu className="h-4 w-4 text-muted-foreground/70 group-hover:text-primary transition-colors" />
+                                            <span className="text-xs font-medium text-muted-foreground w-4 text-center">{contextWindowSize}</span>
+                                            <ChevronUp className="h-3 w-3 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
+                                        </div>
+                                    </DropdownMenuTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent>Context Memory (Click to adjust)</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <DropdownMenuContent side="top" align="start" className="w-64 p-4 mb-2">
+                             <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-xs font-semibold">Context Window</Label>
+                                    <span className="text-xs text-muted-foreground font-mono">{contextWindowSize} msgs</span>
+                                </div>
+                                <Slider
+                                    value={[contextWindowSize]}
+                                    onValueChange={(val) => setContextWindowSize(val[0])}
+                                    min={1}
+                                    max={100}
+                                    step={1}
+                                    className="cursor-pointer"
+                                />
+                                <p className="text-[10px] text-muted-foreground">
+                                    Adjusts how many past messages the AI remembers (Higher = More Memory, Slower).
+                                </p>
+                             </div>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <div className="h-4 w-[1px] bg-border mx-1" />
+
+                    {/* Search Toggle */}
+                    <div className="flex items-center gap-2">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-2">
+                                        <Globe className={cn(
+                                            "h-4 w-4 transition-colors",
+                                            webSearchEnabled ? "text-primary" : "text-muted-foreground/70"
+                                        )} />
+                                        <Switch
+                                            checked={webSearchEnabled}
+                                            onCheckedChange={setWebSearchEnabled}
+                                            className="scale-75 origin-left"
+                                        />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>{webSearchEnabled ? "Web Search ON" : "Web Search OFF"}</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                 </div>
             </div>
             <p className="mt-2 text-center text-xs text-muted-foreground/50">

@@ -29,11 +29,19 @@ export async function streamChatResponseWithFetch(
     onMessage: (type: string, payload: unknown) => void,
     token?: string,
     conversationId?: string,
+    contextWindow?: number,
+    webSearch?: boolean,
     signal?: AbortSignal
 ): Promise<void> {
     let url = `/api/stream?query=${encodeURIComponent(query)}`;
     if (conversationId) {
         url += `&conversation_id=${encodeURIComponent(conversationId)}`;
+    }
+    if (contextWindow) {
+        url += `&context_window=${contextWindow}`;
+    }
+    if (typeof webSearch === 'boolean') {
+        url += `&web_search=${webSearch}`;
     }
 
     const headers: HeadersInit = {

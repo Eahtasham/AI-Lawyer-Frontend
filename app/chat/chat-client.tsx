@@ -49,6 +49,9 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const sessions = useChatStore((state) => state.sessions);
     const currentSessionId = useChatStore((state) => state.currentSessionId);
 
+    const contextWindowSize = useChatStore((state) => state.contextWindowSize);
+    const webSearchEnabled = useChatStore((state) => state.webSearchEnabled);
+
     // Actions (stable functions, can be selected individually or destructured from state if we accept re-renders)
     // To avoid "new object" issues, we select the state itself or use multiple selectors.
     // For readability, let's select individually or just use the store actions directly where needed.
@@ -335,6 +338,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 },
                 token || undefined,
                 currentSessionId || undefined,
+                contextWindowSize,
+                webSearchEnabled,
                 controller.signal
             );
 
@@ -540,6 +545,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 },
                 token || undefined,
                 currentSessionId || undefined,
+                contextWindowSize,
+                webSearchEnabled,
                 controller.signal
             );
         } catch (error: unknown) {

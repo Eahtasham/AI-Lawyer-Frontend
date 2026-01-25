@@ -8,10 +8,14 @@ interface ChatState {
     sessions: ChatSession[]
     currentSessionId: string | null
     isLoading: boolean
+    contextWindowSize: number
+    webSearchEnabled: boolean
 
     // Actions
     setSessions: (sessions: ChatSession[]) => void
     setCurrentSessionId: (id: string | null) => void
+    setContextWindowSize: (size: number) => void
+    setWebSearchEnabled: (enabled: boolean) => void
     addSession: (session: ChatSession) => void
     updateSession: (id: string, updates: Partial<ChatSession>) => void
     renameSession: (id: string, newTitle: string) => Promise<void>
@@ -30,9 +34,14 @@ export const useChatStore = create<ChatState>()(
             sessions: [],
             currentSessionId: null,
             isLoading: false,
+            contextWindowSize: 5, // Default to 5 messages
+            webSearchEnabled: false, // Default to false as requested
+
 
             setSessions: (sessions) => set({ sessions }),
             setCurrentSessionId: (id) => set({ currentSessionId: id }),
+            setContextWindowSize: (size) => set({ contextWindowSize: size }),
+            setWebSearchEnabled: (enabled) => set({ webSearchEnabled: enabled }),
 
             addSession: (session) => set((state) => ({
                 sessions: [session, ...state.sessions]
