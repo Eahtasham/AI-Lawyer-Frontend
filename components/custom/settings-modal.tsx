@@ -301,7 +301,7 @@ export function SettingsModal({ open, onOpenChange, user, profile, onProfileUpda
                                         <h3 className="font-medium mb-4">Chat Memory</h3>
                                         <div className="space-y-4 rounded-lg border p-4">
                                             <div className="flex items-center justify-between">
-                                                <Label htmlFor="context-window">Context Window Size</Label>
+                                                <Label htmlFor="context-window">Context Window (Turns)</Label>
                                                 <span className="text-sm font-medium bg-secondary px-2 py-1 rounded-md min-w-[3rem] text-center">
                                                     {contextWindowSize}
                                                 </span>
@@ -316,7 +316,7 @@ export function SettingsModal({ open, onOpenChange, user, profile, onProfileUpda
                                                 className="w-full"
                                             />
                                             <p className="text-[0.8rem] text-muted-foreground">
-                                                Controls how many previous messages are sent to the AI Council for context. Higher values provide more history but may be slower.
+                                                Controls how many previous conversation turns (User query + AI response) are remembered. Higher values provide more history but may be slower.
                                             </p>
                                         </div>
                                     </div>

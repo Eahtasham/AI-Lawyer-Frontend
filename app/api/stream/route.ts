@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
 
   const contextWindow = searchParams.get("context_window");
   const webSearch = searchParams.get("web_search");
-
+  
   if (!query) {
     return NextResponse.json({ error: "Query parameter is required" }, { status: 400 });
   }
