@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Query parameter is required" }, { status: 400 });
   }
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "");
   let apiUrl = `${backendUrl}/api/stream?query=${encodeURIComponent(query)}`;
   
   if (conversationId) {

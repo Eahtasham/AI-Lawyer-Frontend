@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     // Forward all body params including conversation_id
     const { query, top_k, conversation_id } = body;
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+    const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "");
 
     const authHeader = req.headers.get("Authorization");
     const headers: HeadersInit = {
