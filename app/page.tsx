@@ -1,13 +1,19 @@
-import { Hero } from "@/components/custom/hero";
-import { Features } from "@/components/custom/features";
-import { Header } from "@/components/custom/header";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { LandingPage } from "@/components/custom/landing-page";
 
 export default function Home() {
+  const router = useRouter();
+
+  const handleStartChat = (query?: string) => {
+    // Redirect to login/signup page as requested
+    // If a query is provided, we could store it in local storage or query params, 
+    // but for now simple redirection is requested.
+    router.push("/login");
+  };
+
   return (
-    <main className="flex min-h-screen flex-col bg-background">
-      <Header />
-      <Hero />
-      <Features />
-    </main>
+    <LandingPage onStartChat={handleStartChat} />
   );
 }

@@ -12,13 +12,27 @@ export function Hero() {
             <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-primary/20 opacity-20 blur-[100px]"></div>
 
             <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="mb-8 flex items-center justify-center"
+            >
+                <div className="rounded-full bg-primary/10 p-6 ring-1 ring-primary/20">
+                    <Scale className="h-16 w-16 text-primary" />
+                </div>
+            </motion.div>
+
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
                 className="mb-6 flex items-center justify-center space-x-2 rounded-full border bg-background/50 px-4 py-1.5 text-sm font-medium text-muted-foreground backdrop-blur-sm"
             >
-                <Scale className="h-4 w-4" />
-                <span>SamVidhaan: AI-Powered Legal Assistance</span>
+                <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span>Samvidhaan: AI-Powered Legal Assistance</span>
             </motion.div>
 
             <motion.h1

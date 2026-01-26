@@ -19,7 +19,7 @@ interface Profile {
 }
 
 interface UserProfileDropdownProps {
-    user: any; // Type as needed, ideally User from supabase
+    user: { email?: string; user_metadata?: { full_name?: string; avatar_url?: string } } | null;
     profile: Profile | null;
     trigger: React.ReactNode;
     onOpenSettings: () => void;
@@ -50,9 +50,9 @@ export function UserProfileDropdown({
             <DropdownMenuTrigger asChild>
                 {trigger}
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
-                side={side} 
-                align={align} 
+            <DropdownMenuContent
+                side={side}
+                align={align}
                 sideOffset={sideOffset}
                 className={cn("w-56 bg-popover border-border text-popover-foreground", className)}
             >
@@ -67,8 +67,8 @@ export function UserProfileDropdown({
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                    onClick={onLogout} 
+                <DropdownMenuItem
+                    onClick={onLogout}
                     className="text-red-500 focus:text-red-500 hover:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20 cursor-pointer"
                 >
                     <LogOut className="mr-2 h-4 w-4" />

@@ -19,8 +19,11 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "SamVidhaan: AI-Powered Legal Assistance",
+  title: "Samvidhaan: AI-Powered Legal Assistance",
   description: "Samvidhaan: An AI-Based Legal Advisory System",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/custom/theme-toggle";
-import { Scale, LogOut, Settings, User as UserIcon, Loader2 } from "lucide-react";
+import { Scale, LogOut, Settings, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -26,7 +26,6 @@ export function Header() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const clearStore = useChatStore((state) => state.clearStore);
-    const router = useRouter();
 
     useEffect(() => {
         setMounted(true);
@@ -54,8 +53,9 @@ export function Header() {
         await supabase.auth.signOut();
         clearStore();
         setUser(null);
-        router.push("/login");
-        // No need to set false as we redirect
+        // Use window.location.replace to force a full page reload and clear client-side cache
+        // This prevents the user from clicking "Back" to see the cached chat state
+        window.location.replace("/login");
     };
 
     const userInitials = user?.email?.substring(0, 2).toUpperCase() || "AI";
@@ -66,7 +66,7 @@ export function Header() {
                 <div className="container mx-auto flex h-16 items-center justify-between px-4">
                     <Link href="/" className="flex items-center gap-2 font-montserrat font-bold text-xl">
                         <Scale className="h-6 w-6" />
-                        <span>SamVidhaan AI</span>
+                        <span>Samvidhaan AI</span>
                     </Link>
                     <div className="flex items-center gap-4">
                         <ThemeToggle />
@@ -82,11 +82,11 @@ export function Header() {
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-2 font-montserrat font-bold text-xl">
                     <Scale className="h-6 w-6" />
-                    <span>SamVidhaan AI</span>
+                    <span>Samvidhaan AI</span>
                 </Link>
                 <div className="flex items-center gap-4">
                     <ThemeToggle />
-                    
+
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

@@ -5,14 +5,24 @@ export async function GET(req: NextRequest) {
   const query = searchParams.get("query");
   const conversationId = searchParams.get("conversation_id");
 
+  const contextWindow = searchParams.get("context_window");
+  const webSearch = searchParams.get("web_search");
+
   if (!query) {
     return NextResponse.json({ error: "Query parameter is required" }, { status: 400 });
   }
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   let apiUrl = `${backendUrl}/api/stream?query=${encodeURIComponent(query)}`;
+  
   if (conversationId) {
     apiUrl += `&conversation_id=${encodeURIComponent(conversationId)}`;
+  }
+  if (contextWindow) {
+    apiUrl += `&context_window=${encodeURIComponent(contextWindow)}`;
+  }
+  if (webSearch) {
+    apiUrl += `&web_search=${encodeURIComponent(webSearch)}`;
   }
 
   const authHeader = req.headers.get("Authorization");
