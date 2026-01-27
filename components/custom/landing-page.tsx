@@ -32,6 +32,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStartChat }) => {
                             <a href="#features" className="hover:text-black dark:hover:text-white transition-colors">Features</a>
                             <a href="#how-it-works" className="hover:text-black dark:hover:text-white transition-colors">How It Works</a>
                             <a href="#coverage" className="hover:text-black dark:hover:text-white transition-colors">Coverage</a>
+                            <a href="/pricing" className="hover:text-black dark:hover:text-white transition-colors">Pricing</a>
                         </div>
                         <Button size="sm" onClick={() => onStartChat()}>Try Demo</Button>
                     </div>
