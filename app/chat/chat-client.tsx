@@ -7,7 +7,7 @@ import { fetchChatResponse, streamChatResponseWithFetch } from "@/lib/api";
 import { Message } from "@/types";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, MoreHorizontal, Pencil, Trash, Pin, PinOff, SquarePen, Scale } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -49,6 +49,9 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const sessions = useChatStore((state) => state.sessions);
     const currentSessionId = useChatStore((state) => state.currentSessionId);
 
+    const contextWindowSize = useChatStore((state) => state.contextWindowSize);
+    const webSearchEnabled = useChatStore((state) => state.webSearchEnabled);
+
     // Actions (stable functions, can be selected individually or destructured from state if we accept re-renders)
     // To avoid "new object" issues, we select the state itself or use multiple selectors.
     // For readability, let's select individually or just use the store actions directly where needed.
@@ -89,6 +92,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const [profile, setProfile] = useState<{ username: string; full_name: string; avatar_url: string } | null>(null);
     const [appVersion, setAppVersion] = useState<string>("");
     const [abortController, setAbortController] = useState<AbortController | null>(null);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     // Auth Check: Redirect if session is invalid on mount (handles Back Button cache)
     useEffect(() => {
@@ -296,7 +300,6 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             // Actually, I modified `stream_chat` to handle legacy style.
             // Ideally, we should switch to `fetchChatResponse` (POST) if we want better control, but user wanted "Live Streaming".
             // So we stick to stream.
-
             await streamChatResponseWithFetch(
                 query,
                 (type, payload) => {
@@ -335,6 +338,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 },
                 token || undefined,
                 currentSessionId || undefined,
+                contextWindowSize,
+                webSearchEnabled,
                 controller.signal
             );
 
@@ -365,7 +370,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     };
 
     const handleEdit = async (messageId: string, newContent: string) => {
-        // Edit logic similiar to original but using store
+        // Desktop: proceed with edit logic
         if (!currentSessionId) return;
 
         const index = messages.findIndex((m) => m.id === messageId);
@@ -384,13 +389,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             role: "ai",
             content: "",
             timestamp: Date.now(),
-            isStreaming: true // Or false if using fetchChatResponse (non-stream)
+            isStreaming: true
         };
-
-        // Update store with new history + placeholder AI
-        // Wait, handleEdit in original used `fetchChatResponse` (non-streaming).
-        // I should stick to that or upgrade to stream. Original used `fetchChatResponse`.
-        // So `isStreaming` false initially, but actually `fetchChatResponse` awaits full response.
 
         // Optimistic update
         actions.updateMessages(currentSessionId, [...truncatedHistory, updatedMessage]);
@@ -420,16 +420,6 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             const err = error as Error & { name?: string };
             if (err.name === 'AbortError') {
                 console.log("Edit generation stopped by user");
-                // We might want to remove the loading indicator but maybe keep the user message?
-                // Current logic leaves the "AI typing..." placeholder or whatever.
-                // Actually, we haven't added the AI message to the store yet in the happy path until response comes (wait, line 380).
-                // But wait, line 369/380 updates with finalAiMessage.
-                // Unlike handleSend, handleEdit does NOT put a temporary AI message in the store BEFORE fetching?
-                // Let's check lines 349-353.
-                // It updates store with truncatedHistory + updatedMessage.
-                // It does NOT add a placeholder AI message.
-                // So if we stop, there's no "half-finished" AI message to fix. 
-                // We just stop loading.
             } else {
                 console.error("Failed to fetch response:", error);
                 const errorMessage: Message = {
@@ -540,6 +530,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 },
                 token || undefined,
                 currentSessionId || undefined,
+                contextWindowSize,
+                webSearchEnabled,
                 controller.signal
             );
         } catch (error: unknown) {
@@ -608,7 +600,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             <main className="flex flex-1 flex-col h-full relative min-w-0">
                 {/* Mobile Header */}
                 <div className="flex items-center justify-between px-3 py-3 border-b md:hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-20 gap-2">
-                    <Sheet>
+                    <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
                         <SheetTrigger asChild>
                             <Button variant="ghost" className="-ml-1 h-9 w-9 p-0 text-muted-foreground hover:text-foreground">
                                 <Menu className="h-5 w-5" />
@@ -616,6 +608,9 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 w-[280px] border-r border-border bg-sidebar text-sidebar-foreground">
                             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                            <SheetDescription className="sr-only">
+                                Access chat history and settings
+                            </SheetDescription>
                             <Sidebar
                                 className="border-r-0 w-full"
                                 sessions={sessions}
@@ -629,7 +624,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                                 onDeleteSession={handleDeleteSession}
                                 onLogout={handleLogout}
                                 onOpenSettings={() => setIsSettingsOpen(true)}
-                                onCloseMobile={() => { }}
+                                onCloseMobile={() => setIsMobileSidebarOpen(false)}
                             />
                         </SheetContent>
                     </Sheet>
@@ -639,8 +634,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         <span className="truncate flex items-center">
                             Samvidhaan
                             {appVersion && (
-                                <span className="text-[10px] font-medium bg-muted/50 border border-white/5 px-2 py-0.5 rounded-full ml-2 text-muted-foreground/80 tracking-wide">
-                                    v{appVersion}
+                                <span className="text-muted-foreground font-normal ml-2 opacity-50">
+                                    {appVersion}
                                 </span>
                             )}
                         </span>
@@ -727,8 +722,8 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         <h2 className="text-lg font-semibold tracking-tight truncate max-w-xl flex items-center">
                             Samvidhaan
                             {appVersion && (
-                                <span className="text-[10px] font-medium bg-muted/50 border border-white/5 px-2 py-0.5 rounded-full ml-2 text-muted-foreground/80 tracking-wide">
-                                    v{appVersion}
+                                <span className="text-muted-foreground font-normal ml-2 opacity-50">
+                                    {appVersion}
                                 </span>
                             )}
                         </h2>

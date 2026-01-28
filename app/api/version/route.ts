@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+    const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "");
     // Backend endpoint is at /version (not /api/version)
     const response = await fetch(`${backendUrl}/version`, {
         next: { revalidate: 3600 } // Cache for an hour

@@ -172,7 +172,7 @@ export function Sidebar({
             <>
                 <div
                     className={cn(
-                        "flex flex-col h-screen bg-zinc-50 dark:bg-zinc-900 border-r border-sidebar-border transition-all duration-300 ease-in-out relative",
+                        "flex flex-col h-screen bg-white dark:bg-[#171717] border-r border-sidebar-border transition-all duration-300 ease-in-out relative",
                         isCollapsed ? "w-[70px]" : "w-[260px]",
                         className
                     )}
@@ -318,7 +318,7 @@ export function Sidebar({
                                                     {session.isPinned && (
                                                         <Pin className="h-3.5 w-3.5 shrink-0 text-amber-500/90" />
                                                     )}
-                                                    <span className="truncate text-sm">
+                                                    <span className="truncate text-base md:text-sm">
                                                         {(session.title || "New Chat").length > 30
                                                             ? (session.title || "New Chat").slice(0, 18) + "..."
                                                             : (session.title || "New Chat")}

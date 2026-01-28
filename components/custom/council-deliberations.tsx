@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Scale, ShieldCheck, BookOpen, AlertTriangle, Terminal } from "lucide-react";
+import { Scale, ShieldCheck, BookOpen, AlertTriangle, Terminal, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
 import ReactMarkdown from 'react-markdown';
@@ -58,7 +58,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
             {logs && logs.length > 0 && (
                 <Accordion type="single" collapsible defaultValue={isStreaming ? "logs" : ""} className="w-full border rounded-lg bg-card/50 shadow-sm">
                     <AccordionItem value="logs" className="border-0">
-                        <AccordionTrigger className="px-4 py-2 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-lg">
+                        <AccordionTrigger className="px-4 py-2 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-lg min-h-[48px]">
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
                                     <Terminal className="h-4 w-4" />
@@ -91,7 +91,7 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
             {opinions && opinions.length > 0 && (
                 <Accordion type="single" collapsible className="w-full border rounded-lg bg-card/50 shadow-sm">
                     <AccordionItem value="deliberations" className="border-0">
-                        <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-lg">
+                        <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 transition-colors rounded-t-lg min-h-[48px]">
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-semibold flex items-center gap-2">
                                     ⚖️ Council Deliberations
@@ -110,9 +110,22 @@ export function CouncilDeliberations({ opinions, logs, isStreaming }: CouncilDel
                                                 {getRoleIcon(opinion.role)}
                                                 {opinion.role}
                                             </div>
-                                            <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">
-                                                {opinion.model}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                {opinion.web_search_enabled ? (
+                                                    <div className="flex items-center gap-1 text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800" title="Web Search Enabled">
+                                                        <Globe className="h-3 w-3" />
+                                                        <span className="hidden sm:inline">Enabled</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-1 text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700" title="Web Search Disabled">
+                                                        <Globe className="h-3 w-3 opacity-50" />
+                                                        <span className="hidden sm:inline">Disabled</span>
+                                                    </div>
+                                                )}
+                                                <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">
+                                                    {opinion.model}
+                                                </span>
+                                            </div>
                                         </div>
                                         <ScrollArea className="h-[250px] w-full rounded-md border bg-muted/30 p-3">
                                             <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-normal">

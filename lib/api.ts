@@ -29,16 +29,27 @@ export async function streamChatResponseWithFetch(
     onMessage: (type: string, payload: unknown) => void,
     token?: string,
     conversationId?: string,
+    contextWindow?: number,
+    webSearch?: boolean,
     signal?: AbortSignal
 ): Promise<void> {
     let url = `/api/stream?query=${encodeURIComponent(query)}`;
     if (conversationId) {
         url += `&conversation_id=${encodeURIComponent(conversationId)}`;
     }
+    if (contextWindow) {
+        url += `&context_window=${contextWindow}`;
+    }
+    if (webSearch === true || String(webSearch) === 'true') {
+        url += `&web_search=true`;
+    } else {
+        url += `&web_search=false`;
+    }
 
     const headers: HeadersInit = {
         "Content-Type": "application/json",
     };
+
     if (token) {
         headers["Authorization"] = `Bearer ${token}`;
     }

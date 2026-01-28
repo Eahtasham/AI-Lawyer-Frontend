@@ -11,7 +11,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 
 interface MessageBubbleProps {
@@ -43,6 +43,10 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
         }
     };
 
+    const handleEditClick = () => {
+        setIsEditing(true);
+    };
+
     const handleSaveEdit = () => {
         if (onEdit && editContent.trim() !== message.content) {
             onEdit(editContent);
@@ -60,7 +64,7 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-                "group flex w-full px-0 py-4 gap-0", // Removed gap
+                "group flex w-full px-0 py-4 gap-0",
                 isAi ? "flex-row" : "flex-row-reverse"
             )}
         >
@@ -68,11 +72,18 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
 
             <div className={cn(
                 "flex flex-col min-w-0",
-                isAi ? "items-start flex-1 w-full max-w-full" : "items-end max-w-[90%]" // Removed mr-8 md:mr-16
+                isAi ? "items-start flex-1 w-full max-w-full" : "items-end",
+                // Full width only when editing, otherwise constrained
+                !isAi && !isEditing ? "max-w-[85%]" : "w-full"
             )}>
                 <div className={cn(
                     "relative overflow-hidden break-words",
-                    isAi ? "w-full pl-0" : "dark:bg-[var(--chat-surface)] bg-gray-300 border border-border/50 rounded-[20px] px-4 py-1 text-primary dark:text-gray-100 max-w-full"
+                    isAi ? "w-full pl-0" : cn(
+                        "rounded-[20px] px-4 py-2.5",
+                        isEditing 
+                            ? "bg-[#f4f4f4] dark:bg-[#2f2f2f] border border-[#d1d1d1] dark:border-[#4a4a4a] w-full" // ChatGPT edit background
+                            : "bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white max-w-full" // ChatGPT-style gradient
+                    )
                 )}>
                     {/* Council Deliberations (Shown above the answer) */}
                     {isAi && (
@@ -84,11 +95,11 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                     )}
 
                     {isEditing ? (
-                        <div className="rounded-md border bg-muted p-3">
+                        <div className="w-full">
                             <Textarea
                                 value={editContent}
                                 onChange={(e) => setEditContent(e.target.value)}
-                                className="min-h-[100px] w-full resize-none border-0 bg-transparent p-0 focus-visible:ring-0"
+                                className="min-h-[100px] w-full resize-none border-0 bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0 outline-none text-base"
                                 autoFocus
                             />
                             <div className="mt-2 flex justify-end gap-2">
@@ -101,7 +112,10 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                             </div>
                         </div>
                     ) : (
-                        <div className="prose prose-neutral dark:prose-invert max-w-none break-words">
+                        <div className={cn(
+                            "prose prose-neutral max-w-none break-words",
+                            isAi ? "dark:prose-invert" : "prose-invert" // White text for user messages
+                        )}>
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{
@@ -139,7 +153,11 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                                                 </SyntaxHighlighter>
                                             </div>
                                         ) : (
-                                            <code {...props} className={cn("bg-muted px-1.5 py-0.5 rounded font-mono text-sm", className)}>
+                                            <code {...props} className={cn(
+                                                "px-1.5 py-0.5 rounded font-mono text-sm",
+                                                isAi ? "bg-muted" : "bg-white/20",
+                                                className
+                                            )}>
                                                 {children}
                                             </code>
                                         );
@@ -159,10 +177,10 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                     )}
                 </div>
 
-                {/* Actions - Outside the bubble */}
+                {/* Actions - Outside the bubble - Always visible */}
                 {!isEditing && (
                     <div className={cn(
-                        "mt-1 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity px-1",
+                        "mt-1 flex items-center gap-1 opacity-100 transition-opacity px-1",
                         isAi ? "justify-start" : "justify-end"
                     )}>
                         <Button
@@ -192,7 +210,7 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                                onClick={() => setIsEditing(true)}
+                                onClick={handleEditClick}
                                 title="Edit"
                             >
                                 <Pencil className="h-3 w-3" />

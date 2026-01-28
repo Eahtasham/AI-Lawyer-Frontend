@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   title: "Samvidhaan: AI-Powered Legal Assistance",
   description: "Samvidhaan: An AI-Based Legal Advisory System",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon.ico",
   },
 };
 
