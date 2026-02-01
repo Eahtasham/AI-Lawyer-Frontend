@@ -31,6 +31,7 @@ export async function streamChatResponseWithFetch(
     conversationId?: string,
     contextWindow?: number,
     webSearch?: boolean,
+    mode?: 'fast' | 'balanced' | 'research',
     signal?: AbortSignal
 ): Promise<void> {
     let url = `/api/stream?query=${encodeURIComponent(query)}`;
@@ -44,6 +45,9 @@ export async function streamChatResponseWithFetch(
         url += `&web_search=true`;
     } else {
         url += `&web_search=false`;
+    }
+    if (mode) {
+        url += `&mode=${mode}`;
     }
 
     const headers: HeadersInit = {

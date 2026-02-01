@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, MoreHorizontal, Pencil, Trash, Pin, PinOff, SquarePen, Scale } from "lucide-react";
+import { Menu, MoreHorizontal, Pencil, Trash, Pin, PinOff, SquarePen, Scale, Zap, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useChatStore } from "@/lib/store/chat-store";
 import { createClient } from "@/lib/supabase/client";
@@ -51,6 +51,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
 
     const contextWindowSize = useChatStore((state) => state.contextWindowSize);
     const webSearchEnabled = useChatStore((state) => state.webSearchEnabled);
+    const mode = useChatStore((state) => state.mode);
 
     // Actions (stable functions, can be selected individually or destructured from state if we accept re-renders)
     // To avoid "new object" issues, we select the state itself or use multiple selectors.
@@ -66,6 +67,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
     const syncSessions = useChatStore((state) => state.syncSessions);
     const renameSession = useChatStore((state) => state.renameSession);
     const togglePinSession = useChatStore((state) => state.togglePinSession);
+    const setMode = useChatStore((state) => state.setMode);
 
     // Group for convenience
     const actions = {
@@ -340,6 +342,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 currentSessionId || undefined,
                 contextWindowSize,
                 webSearchEnabled,
+                mode,
                 controller.signal
             );
 
@@ -532,6 +535,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                 currentSessionId || undefined,
                 contextWindowSize,
                 webSearchEnabled,
+                mode,
                 controller.signal
             );
         } catch (error: unknown) {
@@ -732,6 +736,31 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
+                        {/* Mode Selector */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 gap-2 text-xs font-medium">
+                                    {mode === 'fast' && <Zap className="h-3.5 w-3.5 text-orange-500" />}
+                                    {mode === 'balanced' && <Scale className="h-3.5 w-3.5 text-blue-500" />}
+                                    {mode === 'research' && <BookOpen className="h-3.5 w-3.5 text-purple-500" />}
+                                    <span className="hidden sm:inline capitalize">{mode}</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => setMode('fast')}>
+                                    <Zap className="mr-2 h-4 w-4 text-orange-500" />
+                                    <span>Fast</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setMode('balanced')}>
+                                    <Scale className="mr-2 h-4 w-4 text-blue-500" />
+                                    <span>Balanced</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setMode('research')}>
+                                    <BookOpen className="mr-2 h-4 w-4 text-purple-500" />
+                                    <span>Research</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <DropdownMenu >
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">

@@ -24,6 +24,13 @@ export interface Chunk {
         source_file?: string;
         chunk_index?: string | number;
         token_count?: string | number;
+        // Case Metadata
+        url?: string;
+        petitioner?: string;
+        respondent?: string;
+        case_number?: string;
+        case_type?: string;
+        // Statute Metadata
         // Catch-all for any additional fields
         [key: string]: string | number | boolean | undefined;
     };
