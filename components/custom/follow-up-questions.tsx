@@ -9,10 +9,9 @@ interface FollowUpQuestionsProps {
     questions: string[];
     onQuestionClick: (question: string) => void;
     className?: string;
-    disabled?: boolean;
 }
 
-export function FollowUpQuestions({ questions, onQuestionClick, className, disabled }: FollowUpQuestionsProps) {
+export function FollowUpQuestions({ questions, onQuestionClick, className }: FollowUpQuestionsProps) {
     if (!questions || questions.length === 0) return null;
 
     return (
@@ -31,9 +30,8 @@ export function FollowUpQuestions({ questions, onQuestionClick, className, disab
                     >
                         <Button
                             variant="outline"
-                            className="w-full justify-between h-auto py-2.5 px-4 text-left whitespace-normal hover:bg-muted/50 border-muted-foreground/20 text-sm font-normal transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full justify-between h-auto py-2.5 px-4 text-left whitespace-normal h-auto hover:bg-muted/50 border-muted-foreground/20 text-sm font-normal transition-colors"
                             onClick={() => onQuestionClick(question)}
-                            disabled={disabled}
                         >
                             <span className="line-clamp-2">{question}</span>
                             <ArrowRight className="h-3 w-3 shrink-0 ml-2 opacity-50" />

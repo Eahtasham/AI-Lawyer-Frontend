@@ -600,6 +600,47 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
             }
         }
     };
+    const handleFollowUpClick = (question: string) => {
+        // Dynamic Branching Logic:
+        // If we are currently generating (isStreaming), and user clicks a follow-up:
+        // 1. Stop the current generation.
+        // 2. Treat this as an "Edit" of the pending user message (if applicable) or just proper branching.
+        // Actually, cleaner approach:
+        // If streaming, stop it.
+        // Then, check if the last message was a user message (the one that triggered the stream).
+        // If so, EDIT it to the new question.
+        // If not, just send as new.
+
+        if (generatingSessionId === currentSessionId) {
+            handleStop();
+            
+            // Wait a tick for state to settle? 
+            // handleStop is synchronous but state update might be batched.
+            // But we can inspect `messages` directly from store/state.
+            
+            const lastMsg = messages[messages.length - 1];
+            // Usually valid structure: [User, AI (Streaming)]
+            // If we stopped, AI message might remain as partial.
+            // If we want to "branch" (replace), we should remove the partial AI and edit the User msg.
+            
+            if (lastMsg.role === 'ai') {
+                // We typically want to replace the PARENT user message of this AI message.
+                // Or if the AI message is empty/partial, maybe just delete it?
+                // `handleEdit` logic handles getting the history up to that point.
+                
+                const userMsgIndex = messages.length - 2;
+                if (userMsgIndex >= 0 && messages[userMsgIndex].role === 'user') {
+                     const userMsg = messages[userMsgIndex];
+                     // Treat as edit of that user message
+                     handleEdit(userMsg.id, question);
+                     return;
+                }
+            }
+        }
+        
+        // Default behavior (not streaming, or no clear parent found)
+        handleSend(question);
+    };
 
     if (!mounted) {
         return null;
@@ -825,7 +866,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                             isLoading={generatingSessionId === currentSessionId}
                             onEdit={handleEdit}
                             onRegenerate={handleRegenerate}
-                            onFollowUpClick={handleSend}
+                            onFollowUpClick={handleFollowUpClick}
                         />
                     )}
                 </div>

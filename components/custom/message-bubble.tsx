@@ -23,7 +23,7 @@ interface MessageBubbleProps {
     isLoading?: boolean;
 }
 
-export function MessageBubble({ message, onEdit, onRegenerate, onFollowUpClick, isLoading }: MessageBubbleProps) {
+export function MessageBubble({ message, onEdit, onRegenerate, onFollowUpClick }: MessageBubbleProps) {
     const isAi = message.role === "ai";
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
@@ -182,8 +182,7 @@ export function MessageBubble({ message, onEdit, onRegenerate, onFollowUpClick, 
                         <div className="mt-6 pt-2">
                              <FollowUpQuestions 
                                 questions={message.followUpQuestions} 
-                                onQuestionClick={(q) => onFollowUpClick && onFollowUpClick(q)}
-                                disabled={isLoading} 
+                                onQuestionClick={(q) => onFollowUpClick && onFollowUpClick(q)} 
                              />
                         </div>
                     )}
