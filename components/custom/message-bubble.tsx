@@ -5,22 +5,25 @@ import { cn } from "@/lib/utils";
 import { RetrievedChunks } from "./retrieved-chunks";
 import { CouncilDeliberations } from "@/components/custom/council-deliberations";
 import { motion } from "framer-motion";
+import { FollowUpQuestions } from "./follow-up-questions";
 import { Copy, RotateCcw, Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 
 interface MessageBubbleProps {
     message: Message;
     onEdit?: (newContent: string) => void;
     onRegenerate?: () => void;
+    onFollowUpClick?: (question: string) => void;
+    isLoading?: boolean;
 }
 
-export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubbleProps) {
+export function MessageBubble({ message, onEdit, onRegenerate, onFollowUpClick }: MessageBubbleProps) {
     const isAi = message.role === "ai";
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(message.content);
@@ -42,7 +45,7 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
             console.error('Failed to copy text: ', err);
         }
     };
-
+    
     const handleEditClick = () => {
         setIsEditing(true);
     };
@@ -68,8 +71,6 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                 isAi ? "flex-row" : "flex-row-reverse"
             )}
         >
-            {/* Removed hidden Avatar div entirely since it is empty for both users and AI now */}
-
             <div className={cn(
                 "flex flex-col min-w-0",
                 isAi ? "items-start flex-1 w-full max-w-full" : "items-end",
@@ -81,8 +82,8 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                     isAi ? "w-full pl-0" : cn(
                         "rounded-[20px] px-4 py-2.5",
                         isEditing 
-                            ? "bg-[#f4f4f4] dark:bg-[#2f2f2f] border border-[#d1d1d1] dark:border-[#4a4a4a] w-full" // ChatGPT edit background
-                            : "bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white max-w-full" // ChatGPT-style gradient
+                            ? "bg-[#f4f4f4] dark:bg-[#2f2f2f] border border-[#d1d1d1] dark:border-[#4a4a4a] w-full" 
+                            : "bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white max-w-full"
                     )
                 )}>
                     {/* Council Deliberations (Shown above the answer) */}
@@ -169,10 +170,20 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                         </div>
                     )}
 
-                    {/* References - Keep inside main content flow but logically maybe part of bubble? Yes. */}
+                    {/* References */}
                     {!isEditing && isAi && showReferences && (
                         <div className="mt-4 pt-4 border-t border-dashed border-gray-200 dark:border-gray-800">
                             <RetrievedChunks chunks={message.chunks!} />
+                        </div>
+                    )}
+
+                    {/* Follow-up Questions */}
+                    {!isEditing && isAi && message.followUpQuestions && message.followUpQuestions.length > 0 && (
+                        <div className="mt-6 pt-2">
+                             <FollowUpQuestions 
+                                questions={message.followUpQuestions} 
+                                onQuestionClick={(q) => onFollowUpClick && onFollowUpClick(q)} 
+                             />
                         </div>
                     )}
                 </div>
@@ -180,7 +191,7 @@ export function MessageBubble({ message, onEdit, onRegenerate }: MessageBubblePr
                 {/* Actions - Outside the bubble - Always visible */}
                 {!isEditing && (
                     <div className={cn(
-                        "mt-1 flex items-center gap-1 opacity-100 transition-opacity px-1",
+                        "mt-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity px-1",
                         isAi ? "justify-start" : "justify-end"
                     )}>
                         <Button
