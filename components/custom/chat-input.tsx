@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendHorizontal, StopCircle, Paperclip, Mic, Globe, Cpu } from "lucide-react";
+import { SendHorizontal, StopCircle, Paperclip, Mic, Globe, Cpu, Zap, Scale, BookOpen } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
@@ -13,6 +13,7 @@ import { ChevronUp } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,8 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
     const setContextWindowSize = useChatStore((state) => state.setContextWindowSize);
     const webSearchEnabled = useChatStore((state) => state.webSearchEnabled);
     const setWebSearchEnabled = useChatStore((state) => state.setWebSearchEnabled);
+    const mode = useChatStore((state) => state.mode);
+    const setMode = useChatStore((state) => state.setMode);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -108,7 +111,7 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => setWebSearchEnabled(!webSearchEnabled)}>
                                         <Globe className={cn(
                                             "h-4 w-4 transition-colors",
                                             webSearchEnabled ? "text-primary" : "text-muted-foreground/70"
@@ -124,6 +127,86 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
                             </Tooltip>
                         </TooltipProvider>
                     </div>
+
+                    <div className="h-4 w-[1px] bg-border mx-1" />
+
+                    {/* Mode Toggle */}
+                     <DropdownMenu>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <DropdownMenuTrigger asChild>
+                                        <div className="flex items-center gap-1.5 group cursor-pointer hover:bg-muted/50 p-1.5 rounded-md transition-colors">
+                                           {mode === 'fast' && <Zap className="h-4 w-4 text-orange-500" />}
+                                           {mode === 'balanced' && <Scale className="h-4 w-4 text-blue-500" />}
+                                           {mode === 'research' && <BookOpen className="h-4 w-4 text-purple-500" />}
+                                           {/* Always show text for clarity as requested, prioritize name over icon understanding */}
+                                           <span className="text-xs font-medium text-muted-foreground capitalize">
+                                               {mode === 'research' ? 'Council' : mode}
+                                           </span>
+                                           <ChevronUp className="h-3 w-3 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
+                                        </div>
+                                    </DropdownMenuTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent>Current Mode: {mode}</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <DropdownMenuContent side="top" align="start" className="w-[280px] p-0">
+                            <div className="p-2 space-y-1">
+                                <Label className="text-xs font-semibold text-muted-foreground px-2 mb-2 block">
+                                    Select Reasoning Level
+                                </Label>
+                                
+                                <DropdownMenuItem
+                                    onClick={() => setMode('fast')}
+                                    className={cn(
+                                        "flex items-start gap-3 p-2 cursor-pointer focus:bg-muted",
+                                        mode === 'fast' && "bg-muted"
+                                    )}
+                                >
+                                    <Zap className="h-4 w-4 text-orange-500 mt-0.5 shrink-0" />
+                                    <div className="flex flex-col gap-0.5 pointer-events-none">
+                                        <span className="text-sm font-medium leading-none">Fast Mode</span>
+                                        <span className="text-xs text-muted-foreground leading-snug">
+                                            Direct answers. Best for definitions and quick facts.
+                                        </span>
+                                    </div>
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem
+                                    onClick={() => setMode('balanced')}
+                                    className={cn(
+                                        "flex items-start gap-3 p-2 cursor-pointer focus:bg-muted",
+                                        mode === 'balanced' && "bg-muted"
+                                    )}
+                                >
+                                    <Scale className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                                    <div className="flex flex-col gap-0.5 pointer-events-none">
+                                        <span className="text-sm font-medium leading-none">Balanced Mode</span>
+                                        <span className="text-xs text-muted-foreground leading-snug">
+                                            Single-pass reasoning. Connects statutes to query.
+                                        </span>
+                                    </div>
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem
+                                    onClick={() => setMode('research')}
+                                    className={cn(
+                                        "flex items-start gap-3 p-2 cursor-pointer focus:bg-muted",
+                                        mode === 'research' && "bg-muted"
+                                    )}
+                                >
+                                    <BookOpen className="h-4 w-4 text-purple-500 mt-0.5 shrink-0" />
+                                    <div className="flex flex-col gap-0.5 pointer-events-none">
+                                        <span className="text-sm font-medium leading-none">Council (Deep)</span>
+                                        <span className="text-xs text-muted-foreground leading-snug">
+                                            Full multi-agent debate with Devil's Advocate.
+                                        </span>
+                                    </div>
+                                </DropdownMenuItem>
+                            </div>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 

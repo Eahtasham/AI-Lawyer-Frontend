@@ -109,6 +109,23 @@ export async function streamChatResponseWithFetch(
                     } catch (e) {
                         console.error("Failed to parse opinion. Raw:", trimmedLine, e);
                     }
+
+                } else if (trimmedLine.startsWith("token:")) {
+                     try {
+                        const jsonStr = trimmedLine.slice(6);
+                        const token = JSON.parse(jsonStr);
+                        onMessage("token", token);
+                     } catch (e) {
+                         console.error("Failed to parse token. Raw:", trimmedLine, e);
+                     }
+                } else if (trimmedLine.startsWith("followup:")) {
+                     try {
+                        const jsonStr = trimmedLine.slice(9);
+                        const data = JSON.parse(jsonStr);
+                        onMessage("followup", data);
+                     } catch (e) {
+                         console.error("Failed to parse followup. Raw:", trimmedLine, e);
+                     }
                 } else if (trimmedLine.startsWith("data:")) {
                     try {
                         const jsonStr = trimmedLine.slice(5);

@@ -10,14 +10,16 @@ interface MessageListProps {
     isLoading: boolean;
     onEdit: (messageId: string, newContent: string) => void;
     onRegenerate: (messageId?: string) => void;
+    onFollowUpClick?: (question: string) => void;
 }
 
-export function MessageList({ messages, isLoading, onEdit, onRegenerate }: MessageListProps) {
+export function MessageList({ messages, isLoading, onEdit, onRegenerate, onFollowUpClick }: MessageListProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (scrollRef.current) {
-            scrollRef.current.scrollIntoView({ behavior: "smooth" });
+            // Use 'auto' (instant) instead of 'smooth' to prevent jitter during rapid token streaming
+            scrollRef.current.scrollIntoView({ behavior: "auto" });
         }
     }, [messages, isLoading]);
 
@@ -30,6 +32,8 @@ export function MessageList({ messages, isLoading, onEdit, onRegenerate }: Messa
                         message={message}
                         onEdit={(newContent) => onEdit(message.id, newContent)}
                         onRegenerate={message.role === "ai" ? () => onRegenerate(message.id) : undefined}
+                        onFollowUpClick={onFollowUpClick}
+                        isLoading={isLoading}
                     />
                 ))}
                 {isLoading && (

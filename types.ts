@@ -60,6 +60,7 @@ export interface Message {
     timestamp: number;
     logs?: string[];
     isStreaming?: boolean;
+    followUpQuestions?: string[];
 }
 
 export interface ChatSession {

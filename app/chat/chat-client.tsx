@@ -322,10 +322,22 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         }
                     } else if (type === 'chunks') {
                         newMsg.chunks = payload as Message['chunks'];
+                    } else if (type === 'token') {
+                        // True streaming: Append token
+                         const token = payload as string;
+                         newMsg.content = (newMsg.content || "") + token;
+                    } else if (type === 'followup') {
+                         const questions = payload as string[];
+                         newMsg.followUpQuestions = questions;
                     } else if (type === 'data') {
                         const dataPayload = payload as { answer?: string; error?: string };
                         if (dataPayload.answer) {
-                            newMsg.content = dataPayload.answer;
+                            // If we were token streaming, content is already there. 
+                            // Ensure final consistency if needed, but 'token' events should cover it.
+                            // If direct answer (bypassing streaming tokens), use this.
+                            if (!newMsg.content || newMsg.content.length < dataPayload.answer.length) {
+                                newMsg.content = dataPayload.answer; 
+                            }
                             newMsg.isStreaming = false;
                         }
                         if (dataPayload.error) {
@@ -514,12 +526,20 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         if (!exists) {
                             newMsg.council_opinions = [...(newMsg.council_opinions || []), opinionPayload];
                         }
+                    } else if (type === 'token') {
+                        const token = payload as string;
+                        newMsg.content = (newMsg.content || "") + token;
+                    } else if (type === 'followup') {
+                        const questions = payload as string[];
+                        newMsg.followUpQuestions = questions;
                     } else if (type === 'chunks') {
                         newMsg.chunks = payload as Message['chunks'];
                     } else if (type === 'data') {
                         const dataPayload = payload as { answer?: string; error?: string };
                         if (dataPayload.answer) {
-                            newMsg.content = dataPayload.answer;
+                            if (!newMsg.content || newMsg.content.length < dataPayload.answer.length) {
+                                newMsg.content = dataPayload.answer; 
+                            }
                             newMsg.isStreaming = false;
                         }
                         if (dataPayload.error) {
@@ -736,31 +756,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {/* Mode Selector */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 gap-2 text-xs font-medium">
-                                    {mode === 'fast' && <Zap className="h-3.5 w-3.5 text-orange-500" />}
-                                    {mode === 'balanced' && <Scale className="h-3.5 w-3.5 text-blue-500" />}
-                                    {mode === 'research' && <BookOpen className="h-3.5 w-3.5 text-purple-500" />}
-                                    <span className="hidden sm:inline capitalize">{mode}</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => setMode('fast')}>
-                                    <Zap className="mr-2 h-4 w-4 text-orange-500" />
-                                    <span>Fast</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setMode('balanced')}>
-                                    <Scale className="mr-2 h-4 w-4 text-blue-500" />
-                                    <span>Balanced</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setMode('research')}>
-                                    <BookOpen className="mr-2 h-4 w-4 text-purple-500" />
-                                    <span>Research</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        {/* Mode Selector Removed (Moved to ChatInput) */}
                         <DropdownMenu >
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -829,6 +825,7 @@ export default function ChatPage({ accessToken }: ChatClientProps) {
                             isLoading={generatingSessionId === currentSessionId}
                             onEdit={handleEdit}
                             onRegenerate={handleRegenerate}
+                            onFollowUpClick={handleSend}
                         />
                     )}
                 </div>
