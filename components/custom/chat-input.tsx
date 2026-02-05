@@ -84,7 +84,7 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
                              <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-xs font-semibold">Context Window</Label>
-                                    <span className="text-xs text-muted-foreground font-mono">{contextWindowSize} msgs</span>
+                                    <span className="text-xs text-muted-foreground font-mono">{contextWindowSize} turns</span>
                                 </div>
                                 <Slider
                                     value={[contextWindowSize]}
@@ -95,7 +95,7 @@ export function ChatInput({ onSend, onStop, isLoading, disabled }: ChatInputProp
                                     className="cursor-pointer"
                                 />
                                 <p className="text-[10px] text-muted-foreground">
-                                    Adjusts how many past messages the AI remembers (Higher = More Memory, Slower).
+                                    Adjusts how many past conversation turns (User + AI) the AI remembers.
                                 </p>
                              </div>
                         </DropdownMenuContent>

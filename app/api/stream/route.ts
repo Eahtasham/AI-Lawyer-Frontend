@@ -7,14 +7,15 @@ export async function GET(req: NextRequest) {
 
   const contextWindow = searchParams.get("context_window");
   const webSearch = searchParams.get("web_search");
+  const mode = searchParams.get("mode");
 
   if (!query) {
     return NextResponse.json({ error: "Query parameter is required" }, { status: 400 });
   }
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000").replace(/\/$/, "");
   let apiUrl = `${backendUrl}/api/stream?query=${encodeURIComponent(query)}`;
-  
+
   if (conversationId) {
     apiUrl += `&conversation_id=${encodeURIComponent(conversationId)}`;
   }
@@ -23,6 +24,9 @@ export async function GET(req: NextRequest) {
   }
   if (webSearch) {
     apiUrl += `&web_search=${encodeURIComponent(webSearch)}`;
+  }
+  if (mode) {
+    apiUrl += `&mode=${encodeURIComponent(mode)}`;
   }
 
   const authHeader = req.headers.get("Authorization");
@@ -40,15 +44,15 @@ export async function GET(req: NextRequest) {
     });
 
     if (!backendResponse.ok) {
-        console.error("Backend returned error:", backendResponse.status, backendResponse.statusText);
-        return NextResponse.json(
-            { error: `Backend error: ${backendResponse.statusText}` }, 
-            { status: backendResponse.status }
-        );
+      console.error("Backend returned error:", backendResponse.status, backendResponse.statusText);
+      return NextResponse.json(
+        { error: `Backend error: ${backendResponse.statusText}` },
+        { status: backendResponse.status }
+      );
     }
 
     if (!backendResponse.body) {
-        return NextResponse.json({ error: "No response body from backend" }, { status: 500 });
+      return NextResponse.json({ error: "No response body from backend" }, { status: 500 });
     }
 
     // Pass the stream through
