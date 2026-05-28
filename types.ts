@@ -70,3 +70,46 @@ export interface ChatSession {
     updatedAt: number;
     isPinned?: boolean;
 }
+
+// --- Document Analyzer Types ---
+
+export interface AnalysisSectionItem {
+    text: string;
+    significance?: string;
+    severity?: string; // high | medium | low
+    party?: string;
+    deadline?: string;
+    term?: string;
+    simplified?: string;
+}
+
+export interface AnalysisSection {
+    title: string;
+    content?: string;
+    items?: AnalysisSectionItem[];
+}
+
+export interface AnalysisItem {
+    id: string;
+    file_name: string;
+    file_type: string;
+    file_size: number;
+    status: "pending" | "processing" | "completed" | "failed";
+    created_at: string;
+}
+
+export interface FullAnalysis {
+    id: string;
+    file_name: string;
+    file_type: string;
+    status: string;
+    sections: AnalysisSection[];
+    related_chunks: Chunk[];
+    extracted_text?: string;
+    created_at: string;
+}
+
+export interface FollowUpMessage {
+    role: "user" | "ai";
+    content: string;
+}

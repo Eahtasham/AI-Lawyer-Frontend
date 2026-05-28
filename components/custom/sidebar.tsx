@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Plus, MessageSquare, Trash2, MoreHorizontal, Pin, PinOff, Pencil, PanelLeftClose, PanelLeftOpen, Loader2, X, Scale } from "lucide-react";
+import { Plus, MessageSquare, Trash2, MoreHorizontal, Pin, PinOff, Pencil, PanelLeftClose, PanelLeftOpen, Loader2, X, Scale, FileSearch } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatSession } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
@@ -253,6 +253,35 @@ export function Sidebar({
                                 <Plus className="mr-2 h-5 w-5" />
                                 New Chat
                             </Button>
+                        )}
+                    </div>
+
+                    {/* Document Analyzer Link */}
+                    <div className={cn("px-3 pb-1", isCollapsed && "px-0 pb-1 flex justify-center")}>
+                        {isCollapsed ? (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link href="/analyze">
+                                        <Button
+                                            variant="ghost"
+                                            className="h-9 w-11 rounded-xl p-0 flex items-center justify-center text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                                        >
+                                            <FileSearch className="h-4 w-4" />
+                                        </Button>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent side="right">Document Analyzer</TooltipContent>
+                            </Tooltip>
+                        ) : (
+                            <Link href="/analyze">
+                                <Button
+                                    variant="ghost"
+                                    className="w-full justify-start gap-2 text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                                >
+                                    <FileSearch className="h-4 w-4" />
+                                    Document Analyzer
+                                </Button>
+                            </Link>
                         )}
                     </div>
 

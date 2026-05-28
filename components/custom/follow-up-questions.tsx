@@ -30,7 +30,7 @@ export function FollowUpQuestions({ questions, onQuestionClick, className }: Fol
                     >
                         <Button
                             variant="outline"
-                            className="w-full justify-between h-auto py-2.5 px-4 text-left whitespace-normal h-auto hover:bg-muted/50 border-muted-foreground/20 text-sm font-normal transition-colors"
+                            className="w-full justify-between h-auto py-2.5 px-4 text-left whitespace-normal hover:bg-muted/50 border-muted-foreground/20 text-sm font-normal transition-colors"
                             onClick={() => onQuestionClick(question)}
                         >
                             <span className="line-clamp-2">{question}</span>
