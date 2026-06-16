@@ -7,9 +7,45 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Chunk } from "@/types";
-import { BookOpen, Scale, Gavel, FileText, Calendar, Building2, Download, Loader2, User, Hash, FileType } from "lucide-react";
+import { Chunk, ChunkRetrieval } from "@/types";
+import { BookOpen, Scale, Gavel, FileText, Calendar, Building2, Download, Loader2, User, Hash, FileType, Sparkles, Type, Layers, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/**
+ * Hybrid-retrieval provenance badges: shows WHICH retrievers found this chunk
+ * (semantic / lexical / both) and whether it is a high-authority precedent.
+ * Renders nothing in plain dense mode (no `retrieval` metadata present).
+ */
+function ProvenanceBadges({ retrieval }: { retrieval?: ChunkRetrieval }) {
+    if (!retrieval) return null;
+    const hasDense = retrieval.dense_rank != null;
+    const hasBm25 = retrieval.bm25_rank != null;
+    const authority = retrieval.authority ?? 0;
+    const tip = `Dense rank: ${retrieval.dense_rank ?? "—"} · BM25 rank: ${retrieval.bm25_rank ?? "—"} · RRF: ${retrieval.rrf_score ?? "—"}`;
+
+    return (
+        <div className="flex flex-wrap items-center gap-1.5 mt-2" title={tip}>
+            {hasDense && hasBm25 ? (
+                <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-1 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400">
+                    <Layers className="h-3 w-3" /> Semantic + Lexical
+                </Badge>
+            ) : hasDense ? (
+                <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-1 bg-sky-50 dark:bg-sky-950/30 border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-400">
+                    <Sparkles className="h-3 w-3" /> Semantic match
+                </Badge>
+            ) : hasBm25 ? (
+                <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-1 bg-violet-50 dark:bg-violet-950/30 border-violet-300 dark:border-violet-800 text-violet-700 dark:text-violet-400">
+                    <Type className="h-3 w-3" /> Keyword match
+                </Badge>
+            ) : null}
+            {authority > 0.1 && (
+                <Badge variant="outline" className="text-[10px] h-5 px-1.5 gap-1 bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-400" title={`PageRank authority: ${authority.toFixed(3)}`}>
+                    <Award className="h-3 w-3" /> Landmark authority
+                </Badge>
+            )}
+        </div>
+    );
+}
 
 interface RetrievedChunksProps {
     chunks: Chunk[];
@@ -191,6 +227,8 @@ export function RetrievedChunks({ chunks }: RetrievedChunksProps) {
                             </span>
                         )}
                     </div>
+                    {/* Hybrid retrieval provenance */}
+                    <ProvenanceBadges retrieval={chunk.metadata?.retrieval} />
                 </div>
 
                 {/* Content */}

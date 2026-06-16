@@ -4,11 +4,22 @@ export interface ChatRequest {
     conversation_id?: string;
 }
 
+// Retrieval provenance attached by the hybrid retriever (which retrievers found
+// this chunk, the fused score, and its legal-authority PageRank score).
+export interface ChunkRetrieval {
+    dense_rank?: number | null;
+    bm25_rank?: number | null;
+    rrf_score?: number;
+    authority?: number;
+}
+
 export interface Chunk {
     rank: number;
     score: number;
     text: string;
     metadata: {
+        // Hybrid-retrieval provenance (present only in hybrid mode)
+        retrieval?: ChunkRetrieval;
         // Primary fields (unified format - always present)
         law?: string;
         chapter_number?: string;
@@ -31,8 +42,10 @@ export interface Chunk {
         case_number?: string;
         case_type?: string;
         // Statute Metadata
-        // Catch-all for any additional fields
-        [key: string]: string | number | boolean | undefined;
+        // Catch-all for any additional fields (kept permissive so nested objects
+        // like `retrieval` don't conflict with the string index signature)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        [key: string]: any;
     };
 }
 
